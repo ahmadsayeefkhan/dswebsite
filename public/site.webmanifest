@@ -1,0 +1,11 @@
+{
+  "name": "Defined Solution",
+  "short_name": "Defined Solution",
+  "icons": [
+    { "src": "/brand/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/brand/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ],
+  "theme_color": "#0B090E",
+  "background_color": "#0B090E",
+  "display": "browser"
+}

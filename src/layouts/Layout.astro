@@ -65,9 +65,14 @@ const structuredData = {
     <link rel="canonical" href={canonical} />
     {noindex && <meta name="robots" content="noindex" />}
 
-    <link rel="icon" href="/brand/favicon.svg" type="image/svg+xml" />
-    <link rel="icon" href="/brand/icon-32.png" sizes="32x32" />
-    <link rel="apple-touch-icon" href="/brand/icon-180.png" />
+    {/* Root-level icons, where browsers and search engines look by default.
+        The ?v= query forces a refetch: the previous site used these same
+        paths, and browsers cache favicons far longer than their headers say.
+        Bump it whenever the mark changes. */}
+    <link rel="icon" href="/favicon.ico?v=2" sizes="32x32" />
+    <link rel="icon" href="/favicon.svg?v=2" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2" />
+    <link rel="manifest" href="/site.webmanifest?v=2" />
     <meta name="theme-color" content="#0B090E" />
 
     <meta property="og:type" content="website" />
