@@ -1,0 +1,59 @@
+# ─────────────────────────────────────────────────────────────────────────
+#  definedsolution.com — static Astro build on Hostinger (LiteSpeed)
+#  Deployed from the `deploy` branch of github.com/ahmadsayeefkhan/dswebsite
+# ─────────────────────────────────────────────────────────────────────────
+
+Options -Indexes
+DirectoryIndex index.html
+ErrorDocument 404 /404.html
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Hostinger's Git deploy keeps a .git folder in public_html — never serve it.
+  RewriteRule (^|/)\.git(/|$) - [F,L]
+
+  # One canonical address: https://definedsolution.com — no www…
+  RewriteCond %{HTTP_HOST} ^www\. [NC]
+  RewriteRule ^ https://definedsolution.com%{REQUEST_URI} [L,R=301]
+
+  # …and always TLS. Behind Hostinger's CDN the origin may see plain HTTP,
+  # so trust the CDN's X-Forwarded-Proto before redirecting.
+  RewriteCond %{HTTPS} off
+  RewriteCond %{HTTP:X-Forwarded-Proto} !https
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+  # /index.html → /
+  RewriteCond %{THE_REQUEST} \s/+index\.html[\s?] [NC]
+  RewriteRule ^index\.html$ / [L,R=301]
+</IfModule>
+
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+  Header always set Strict-Transport-Security "max-age=31536000"
+
+  # Pages: always revalidate, so a deploy shows up immediately.
+  <FilesMatch "\.(html|xml|txt)$">
+    Header set Cache-Control "public, max-age=0, must-revalidate"
+  </FilesMatch>
+
+  # Astro's JS/CSS live in /_astro with content hashes in their names.
+  <FilesMatch "\.(js|css|woff2?)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+
+  # Media keep stable names (a replaced photo reuses its filename): a week.
+  <FilesMatch "\.(jpe?g|png|webp|avif|gif|svg|ico|mp4|webm|glb)$">
+    Header set Cache-Control "public, max-age=604800"
+  </FilesMatch>
+</IfModule>
+
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml application/javascript application/json application/xml image/svg+xml model/gltf-binary
+</IfModule>
+
+AddType model/gltf-binary .glb
+AddType video/mp4 .mp4
