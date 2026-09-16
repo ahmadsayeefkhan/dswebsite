@@ -27,7 +27,8 @@ export const hero = {
    lifts to --color-bone on hover — the band stays monochrome, exactly as the
    wordmarks did. `logo` is the filename stem; omit it and the item falls back
    to its wordmark, which is the honest answer for a tool with no mark of its
-   own (SQL) or one we have not confirmed (Hermes).                          */
+   own (SQL). Hermes Agent's mark (Nous Research) comes from the MIT-licensed
+   @lobehub/icons set.                                                        */
 
 export interface MarqueeItem {
   name: string;
@@ -53,7 +54,7 @@ export const marqueeLanes: {
       { name: 'NotebookLM', logo: 'notebooklm' },
       { name: 'ElevenLabs', logo: 'elevenlabs' },
       { name: 'Replit', logo: 'replit' },
-      { name: 'Hermes' },
+      { name: 'Hermes Agent', logo: 'hermesagent' },
       { name: 'OpenClaw', logo: 'openclaw' },
       { name: 'n8n', logo: 'n8n' },
       { name: 'Perplexity', logo: 'perplexity' },
