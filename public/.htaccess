@@ -26,7 +26,7 @@ ErrorDocument 404 /main/404.html
   # with its own rewrite rules does not inherit the root's. THE_REQUEST is the
   # visitor's original request line, so the root's internal rewrite into
   # /main never triggers it.
-  RewriteCond %{THE_REQUEST} \s/main(/[^\s?]*)? [NC]
+  RewriteCond %{THE_REQUEST} \s/main(?:/([^\s?]*))?[\s?] [NC]
   RewriteRule ^ /%1 [L,R=301]
 </IfModule>
 
