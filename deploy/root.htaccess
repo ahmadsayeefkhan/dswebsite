@@ -1,0 +1,33 @@
+# ─────────────────────────────────────────────────────────────────────────
+#  public_html/.htaccess — installed by hand, not by the deploy.
+#
+#  public_html is the main domain's web root, but it also holds the folders of
+#  the *.definedsolution.com subdomain sites, and this file is inherited by
+#  them. So every rule is limited to definedsolution.com / www, and the main
+#  site itself lives in public_html/main (Hostinger Git deploy of the
+#  `deploy` branch).
+# ─────────────────────────────────────────────────────────────────────────
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # www → apex
+  RewriteCond %{HTTP_HOST} ^www\.definedsolution\.com$ [NC]
+  RewriteRule ^ https://definedsolution.com%{REQUEST_URI} [L,R=301]
+
+  # Always TLS (behind Hostinger's CDN, trust X-Forwarded-Proto).
+  RewriteCond %{HTTP_HOST} ^definedsolution\.com$ [NC]
+  RewriteCond %{HTTPS} off
+  RewriteCond %{HTTP:X-Forwarded-Proto} !https
+  RewriteRule ^ https://definedsolution.com%{REQUEST_URI} [L,R=301]
+
+  # Nobody should see /main/ in an address: strip it if typed.
+  RewriteCond %{HTTP_HOST} ^definedsolution\.com$ [NC]
+  RewriteCond %{THE_REQUEST} \s/main/([^\s?]*) [NC]
+  RewriteRule ^ /%1 [L,R=301]
+
+  # Serve the site from /main.
+  RewriteCond %{HTTP_HOST} ^definedsolution\.com$ [NC]
+  RewriteCond %{REQUEST_URI} !^/main/
+  RewriteRule ^(.*)$ /main/$1 [L]
+</IfModule>

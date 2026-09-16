@@ -18,8 +18,13 @@ Live at **https://definedsolution.com** (Hostinger, Business plan).
 ```
 push to main ──► GitHub Actions: npm ci + npm run build ──► commit dist/ to `deploy`
                                                                     │
-                        Hostinger (hPanel → Advanced → Git) ◄───────┘ webhook → git pull into public_html
+                        Hostinger (hPanel → Advanced → Git) ◄───────┘ auto-deploy → public_html/main
 ```
+
+`public_html` also holds the subdomain sites' folders, so the site deploys into
+`public_html/main`, and `public_html/.htaccess` (a copy of
+[`deploy/root.htaccess`](deploy/root.htaccess), installed once by hand) maps
+definedsolution.com into it. Never empty `public_html`.
 
 To ship a change: commit it and `git push`. The site updates in about a minute —
 watch the run under the repo's **Actions** tab. Nothing is built on the server.
@@ -27,8 +32,8 @@ watch the run under the repo's **Actions** tab. Nothing is built on the server.
 - **Rollback:** revert the commit on `main` and push; or in hPanel → Git, redeploy.
 - **Form key:** `PUBLIC_WEB3FORMS_KEY` (public by design). Locally it comes from `.env`
   (see `.env.example`); in CI from the workflow default or a repository variable.
-- **Server rules:** `public/.htaccess` — HTTPS + non-www redirect, 404 page, caching,
-  security headers, and a block on the `.git` folder Hostinger's deploy leaves behind.
+- **Server rules:** `deploy/root.htaccess` (domain level: HTTPS, non-www, `/main` mapping) and
+  `public/.htaccess` (site level: 404 page, caching, security headers, `.git` block).
 - **Cache:** HTML revalidates on every visit. Images keep their names, so a replaced image
   can take up to a week to refresh for returning visitors — give it a new filename if it
   must change at once. Flush hPanel → Performance → CDN if a deploy looks stale.
