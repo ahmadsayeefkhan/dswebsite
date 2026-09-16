@@ -59,3 +59,5 @@ ErrorDocument 404 /main/404.html
 
 AddType model/gltf-binary .glb
 AddType video/mp4 .mp4
+AddType application/manifest+json .webmanifest
+AddType image/x-icon .ico
