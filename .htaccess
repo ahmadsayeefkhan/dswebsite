@@ -1,31 +1,25 @@
 # ─────────────────────────────────────────────────────────────────────────
 #  definedsolution.com — static Astro build on Hostinger (LiteSpeed)
-#  Deployed from the `deploy` branch of github.com/ahmadsayeefkhan/dswebsite
+#
+#  This file ships inside the build and lands in public_html/main/, the folder
+#  Hostinger's Git deploy owns. It only governs that folder. The domain-level
+#  rules — www → apex, HTTPS, and mapping definedsolution.com into /main —
+#  live in public_html/.htaccess (see deploy/root.htaccess), because
+#  public_html also holds the subdomain sites' folders and must not be
+#  touched by a deploy.
 # ─────────────────────────────────────────────────────────────────────────
 
 Options -Indexes
 DirectoryIndex index.html
+
+# Resolved at the domain root, which maps it back into /main.
 ErrorDocument 404 /404.html
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
 
-  # Hostinger's Git deploy keeps a .git folder in public_html — never serve it.
+  # Hostinger's Git deploy keeps a .git folder here — never serve it.
   RewriteRule (^|/)\.git(/|$) - [F,L]
-
-  # One canonical address: https://definedsolution.com — no www…
-  RewriteCond %{HTTP_HOST} ^www\. [NC]
-  RewriteRule ^ https://definedsolution.com%{REQUEST_URI} [L,R=301]
-
-  # …and always TLS. Behind Hostinger's CDN the origin may see plain HTTP,
-  # so trust the CDN's X-Forwarded-Proto before redirecting.
-  RewriteCond %{HTTPS} off
-  RewriteCond %{HTTP:X-Forwarded-Proto} !https
-  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
-
-  # /index.html → /
-  RewriteCond %{THE_REQUEST} \s/+index\.html[\s?] [NC]
-  RewriteRule ^index\.html$ / [L,R=301]
 </IfModule>
 
 <IfModule mod_headers.c>
