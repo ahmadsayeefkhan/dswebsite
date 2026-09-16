@@ -12,14 +12,22 @@
 Options -Indexes
 DirectoryIndex index.html
 
-# Resolved at the domain root, which maps it back into /main.
-ErrorDocument 404 /404.html
+# LiteSpeed serves error documents without re-running the root rewrite, so
+# point at the file's real location.
+ErrorDocument 404 /main/404.html
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
 
   # Hostinger's Git deploy keeps a .git folder here — never serve it.
   RewriteRule (^|/)\.git(/|$) - [F,L]
+
+  # Nobody should see /main/ in an address. This has to live here: a folder
+  # with its own rewrite rules does not inherit the root's. THE_REQUEST is the
+  # visitor's original request line, so the root's internal rewrite into
+  # /main never triggers it.
+  RewriteCond %{THE_REQUEST} \s/main(/[^\s?]*)? [NC]
+  RewriteRule ^ /%1 [L,R=301]
 </IfModule>
 
 <IfModule mod_headers.c>
