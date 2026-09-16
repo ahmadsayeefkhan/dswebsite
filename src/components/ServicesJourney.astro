@@ -1,0 +1,857 @@
+---
+/**
+ * Services — the journey.
+ *
+ * Requested layout: a centred spine with a numbered badge per service, and
+ * rows that alternate side to side — visual against the spine on one side,
+ * the copy on the other, flipping at every step.
+ *
+ * Why this rather than the old pinned horizontal rail: a vertical walk reads
+ * as an argument in order (01 → 04) and costs nothing on touch, where pinning
+ * fought the platform's own scrolling. It also gives each service a
+ * picture-sized slot, which the rail never had room for.
+ *
+ * ── The spine is the stroke, continued ─────────────────────────────────────
+ * The page's one motion idea is that the mark draws itself: the intro draws
+ * the contour, the left rail continues the stroke down the document. Here
+ * the stroke walks the services. The spine fills in step with scroll, a
+ * comet rides its leading edge, and every badge ignites the moment the
+ * comet passes it. Each row is then choreographed off that same moment: the
+ * visual unfolds *away from the spine*, the title rises word by word, the
+ * deliverables land last. Behind it all, a sparse field of motes in WebGL
+ * drifts toward the comet and parts around the cursor — the same light the
+ * atmosphere carries, made particulate. See motion.ts → initServicesJourney
+ * and scripts/servicesField.ts.
+ *
+ * Every layer here degrades honestly: no JS → the finished layout, all
+ * visible; reduced motion → the same, with the spine drawn full; touch or a
+ * small screen → the spine moves to the left edge, the field and the tilt are
+ * never started.
+ *
+ * Deliverables stay visible at every width rather than hiding behind hover:
+ * the rows contain nothing focusable, so a keyboard user could never open
+ * them, there is no hover on touch, and personas A and B are scanning
+ * specifically for these lists (guideline 01 §2).
+ */
+import Icon from './Icon.astro';
+import ServiceVisual from './ServiceVisual.astro';
+import type { ServiceVisualName } from './ServiceVisual.astro';
+import { services } from '../data/content';
+
+const total = String(services.length).padStart(2, '0');
+---
+
+<section class="section jrn" id="services" data-journey>
+  {/* The particle field: a sticky, viewport-sized canvas that lives behind the
+      whole walk. Mounted lazily by motion.ts only on capable desktop devices;
+      until then it is an empty, invisible element. */}
+  <div class="jrn__field" aria-hidden="true" data-journey-field>
+    <canvas class="jrn__canvas" data-journey-canvas></canvas>
+  </div>
+
+  <div class="shell jrn__shell">
+    <p class="meta" data-reveal="fade">
+      <span class="meta__counter">03</span>
+      <span class="meta__slash" aria-hidden="true">/</span>
+      Services
+    </p>
+
+    <div class="jrn__head">
+      <h2 class="jrn__headline wdth-h2" data-reveal="lines">
+        Comprehensive capabilities, specialised execution<span class="period">.</span>
+      </h2>
+      <div class="jrn__lead-wrap">
+        <p class="jrn__lead measure-lead" data-reveal="fade">
+          We do not just build deliverables — we engineer complete digital ecosystems. From the
+          first line of code to a global launch, this is how we accelerate your growth.
+        </p>
+        <p class="jrn__steps meta" data-reveal="fade">
+          <span class="meta__counter">{total}</span>
+          <span class="meta__slash" aria-hidden="true">/</span>
+          disciplines, walked in order
+        </p>
+      </div>
+    </div>
+
+    <div class="jrn__walk" data-journey-walk>
+      {/* One continuous spine behind the badges, rather than a segment per
+          row: the fill has to be a single element for the scrub to read as
+          one stroke. Badges sit on top with solid ground and break it. */}
+      <div class="jrn__spine" aria-hidden="true">
+        <span class="jrn__spine-line"></span>
+        <span class="jrn__spine-fill" data-journey-fill></span>
+        <span class="jrn__comet" data-journey-comet></span>
+      </div>
+
+      {/* A sticky read-out in the right gutter on wide screens: which step the
+          comet is on. Purely decorative — the badge and heading already say it
+          in the flow — so it is hidden from the tree. */}
+      <div class="jrn__hud" aria-hidden="true" data-journey-hud>
+        <div class="jrn__hud-sticky">
+          <span class="jrn__hud-now tnum" data-journey-hud-now>01</span>
+          <span class="jrn__hud-of tnum">/ {total}</span>
+          <span class="jrn__hud-bar"><span data-journey-hud-bar></span></span>
+          <span class="jrn__hud-label" data-journey-hud-label>{services[0].kicker}</span>
+        </div>
+      </div>
+
+      <ol class="jrn__list">
+        {
+          services.map((s, i) => (
+            <li class="jstep" data-step data-step-index={i} data-step-label={s.kicker}>
+              {/* The number is decoration for the spine; the heading below
+                  already names the step, so it is not announced twice. */}
+              <span class="jstep__badge" data-step-badge aria-hidden="true">
+                <span class="jstep__badge-n tnum">{s.number}</span>
+              </span>
+
+              <div class="jstep__grid">
+                <figure class="jstep__visual" data-step-visual>
+                  <div class="jstep__art" data-step-art>
+                    <ServiceVisual name={s.id as ServiceVisualName} class="jstep__svg" />
+                  </div>
+                  <span class="jstep__sheen" aria-hidden="true"></span>
+                  <span class="jstep__frame" aria-hidden="true"></span>
+                </figure>
+
+                <div class="jstep__copy">
+                  <p class="jstep__kicker" data-chor>
+                    <span class="jstep__kicker-n tnum">{s.number}</span>
+                    {s.kicker}
+                  </p>
+                  <h3 class="jstep__title" data-step-title>{s.title}</h3>
+                  <p class="jstep__body" data-chor>{s.body}</p>
+
+                  <span class="jstep__rule" data-step-rule aria-hidden="true"></span>
+                  <ul class="jstep__list">
+                    {s.deliverables.map((d) => (
+                      <li class="jstep__item" data-chor>
+                        <Icon name="check" size={13} class="jstep__check" />
+                        <span>{d}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+
+    <div class="jrn__cta" data-reveal="fade">
+      <span class="jrn__cta-glow" aria-hidden="true"></span>
+      <h3 class="jstep__title jrn__cta-title">Not sure which you need<span class="period">?</span></h3>
+      <p class="jstep__body">
+        Most projects touch two or three of these. Tell us the problem and we will map it to the
+        work — free consultation, no obligation.
+      </p>
+      <a href="#contact" class="btn btn--primary" data-magnetic="0.24">
+        Book a free consultation
+        <Icon name="arrow-up-right" size={16} class="btn__icon" />
+      </a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .jrn {
+    position: relative;
+    overflow: clip;
+  }
+
+  /* The join from the studio: a hairline that fades at both ends rather than
+     a hard rule, centred on the spine's axis so the section announces the
+     line it is about to draw. */
+  .jrn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: min(100%, var(--container-page));
+    height: 1px;
+    transform: translateX(-50%);
+    background: linear-gradient(90deg, transparent, var(--color-line-strong) 50%, transparent);
+    pointer-events: none;
+  }
+
+  .jrn__shell {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── The field ─────────────────────────────────────────────────────────── */
+
+  .jrn__field {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    /* Only painted once the script has mounted a context; a bare canvas on
+       its own would be a black rectangle on the light theme. */
+    opacity: 0;
+    transition: opacity 900ms var(--ds-ease);
+  }
+  .jrn__field.is-live {
+    opacity: 1;
+  }
+
+  .jrn__canvas {
+    position: sticky;
+    top: 0;
+    display: block;
+    width: 100%;
+    height: 100vh;
+    height: 100svh;
+  }
+
+  /* ── Head ──────────────────────────────────────────────────────────────── */
+
+  .jrn__head {
+    display: grid;
+    gap: clamp(18px, 2.4vw, 44px);
+    margin-top: clamp(22px, 2.4vw, 30px);
+  }
+
+  .jrn__headline {
+    font-size: var(--text-h2);
+    line-height: 0.98;
+    letter-spacing: -0.03em;
+    max-width: 20ch;
+  }
+
+  .jrn__lead-wrap {
+    display: grid;
+    gap: 18px;
+  }
+
+  .jrn__lead {
+    font-size: var(--text-lead);
+    line-height: 1.62;
+    color: var(--color-slate);
+  }
+
+  .jrn__steps {
+    letter-spacing: 0.14em;
+  }
+
+  /* ── The walk ──────────────────────────────────────────────────────────── */
+
+  .jrn__walk {
+    position: relative;
+    margin-top: clamp(56px, 7vw, 96px);
+  }
+
+  .jrn__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  .jstep + .jstep {
+    margin-top: clamp(48px, 6vw, 88px);
+  }
+
+  /* ── Spine ─────────────────────────────────────────────────────────────── */
+
+  .jrn__spine {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    /* Mobile: the spine runs down the left edge, through the badges. */
+    left: 15px;
+    width: 1px;
+    z-index: 0;
+  }
+
+  .jrn__spine-line,
+  .jrn__spine-fill {
+    position: absolute;
+    inset: 0;
+  }
+
+  .jrn__spine-line {
+    background: var(--color-line-strong);
+  }
+
+  /* The stroke being drawn. scaleY is scrubbed to the walk's own progress by
+     motion.ts; without JS (or under reduced motion) it is simply drawn. */
+  .jrn__spine-fill {
+    background: var(--color-rose);
+    opacity: 0.55;
+    transform-origin: top;
+    will-change: transform;
+  }
+  :global(html.js) .jrn__spine-fill {
+    transform: scaleY(0);
+  }
+
+  /* The comet: the light at the leading edge of the stroke. The tail is a
+     gradient running back up the fill so the head reads as moving, not as a
+     dot sitting on a line. */
+  .jrn__comet {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 7px;
+    height: 7px;
+    margin-left: -3.5px;
+    margin-top: -3.5px;
+    border-radius: 999px;
+    background: var(--color-rose);
+    box-shadow:
+      0 0 0 4px rgb(203 74 104 / 0.18),
+      0 0 22px 6px rgb(203 74 104 / 0.42);
+    will-change: transform;
+    opacity: 0;
+  }
+  .jrn__comet::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 100%;
+    width: 1px;
+    height: 180px;
+    margin-left: -0.5px;
+    background: linear-gradient(to top, var(--color-rose), transparent);
+  }
+  :global(html.js) .jrn__comet {
+    opacity: 1;
+  }
+
+  /* ── HUD ───────────────────────────────────────────────────────────────── */
+
+  .jrn__hud {
+    display: none;
+  }
+
+  /* ── Steps ─────────────────────────────────────────────────────────────── */
+
+  .jstep {
+    position: relative;
+    padding-left: 52px;
+  }
+
+  /* Solid ground, so the spine reads as broken by the badge rather than
+     running underneath. Sits exactly on the spine's axis. */
+  .jstep__badge {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--color-line-strong);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface-2);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    color: var(--color-slate);
+    z-index: 2;
+    transition:
+      border-color var(--ds-dur) var(--ds-ease),
+      color var(--ds-dur) var(--ds-ease),
+      background-color var(--ds-dur) var(--ds-ease),
+      box-shadow var(--ds-dur-slow) var(--ds-ease);
+  }
+
+  /* The ping ring: fires once, when the badge ignites. */
+  .jstep__badge::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    border: 1px solid var(--color-rose);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* Ignited: the comet has passed. Permanent, like the rail's ticks — the
+     stroke is being drawn, not scrubbed back and forth. */
+  .jstep.is-lit .jstep__badge {
+    border-color: var(--color-rose);
+    color: var(--color-rose-text);
+    box-shadow: 0 0 0 4px var(--ds-rose-veil);
+  }
+  .jstep.is-lit .jstep__badge::after {
+    animation: badge-ping 900ms var(--ds-ease) forwards;
+  }
+
+  @keyframes badge-ping {
+    0% {
+      transform: scale(1);
+      opacity: 0.9;
+    }
+    100% {
+      transform: scale(2.1);
+      opacity: 0;
+    }
+  }
+
+  .jstep__grid {
+    display: grid;
+    gap: clamp(24px, 3vw, 36px);
+  }
+
+  /* ── Visual ────────────────────────────────────────────────────────────── */
+
+  .jstep__visual {
+    position: relative;
+    margin: 0;
+    aspect-ratio: 16 / 10;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: var(--color-surface);
+    box-shadow: 0 30px 70px -32px rgb(0 0 0 / 0.8);
+    /* Pointer tilt, written by motion.ts as --rx/--ry. The resting z-rotation
+       alternates with the row, so the stack reads as laid down by hand rather
+       than snapped to a grid. Kept under 1.5° — past that it stops reading as
+       a placed photograph and starts reading as a mistake. */
+    --rx: 0deg;
+    --ry: 0deg;
+    --rz: -1.1deg;
+    --px: 0;
+    --py: 0;
+    transform: perspective(1100px) rotateX(var(--rx)) rotateY(var(--ry)) rotate(var(--rz));
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+
+  .jstep:nth-child(even) .jstep__visual {
+    --rz: 1.1deg;
+  }
+
+  /* Before arrival the picture is folded shut against the spine; the timeline
+     in motion.ts unfolds it outward. Mobile spine is on the left, so every
+     row opens left → right. */
+  :global(html.js) .jstep__visual {
+    clip-path: inset(0 100% 0 0 round var(--radius-lg));
+  }
+
+  /* Overscan (scale ≥ 1.04) so the hover zoom and the depth layers never
+     expose an edge. The scale itself is owned by motion.ts — it settles from
+     1.14 as the picture unfolds and lifts to 1.09 under the pointer — so no
+     CSS transition here, or it would fight the tween. */
+  .jstep__art {
+    position: absolute;
+    inset: 0;
+    transform: scale(1.04);
+    will-change: transform;
+  }
+
+  .jstep__visual :global(.jstep__svg) {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* The border, drawn on top of the art so the hover zoom never pushes the
+     picture over its own edge. */
+  .jstep__frame {
+    position: absolute;
+    inset: 0;
+    border: 1px solid var(--color-line);
+    border-radius: inherit;
+    pointer-events: none;
+    transition: border-color var(--ds-dur-slow) var(--ds-ease);
+  }
+  .jstep__visual:hover .jstep__frame {
+    border-color: var(--color-line-strong);
+  }
+
+  /* A soft light that follows the pointer across the glass. */
+  .jstep__sheen {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    background: radial-gradient(
+      420px circle at calc(50% + var(--px) * 50%) calc(50% + var(--py) * 50%),
+      rgb(237 237 237 / 0.07),
+      transparent 60%
+    );
+    transition: opacity var(--ds-dur-slow) var(--ds-ease);
+  }
+  .jstep__visual:hover .jstep__sheen {
+    opacity: 1;
+  }
+  :global(html[data-theme='light']) .jstep__sheen {
+    background: radial-gradient(
+      420px circle at calc(50% + var(--px) * 50%) calc(50% + var(--py) * 50%),
+      rgb(25 20 32 / 0.05),
+      transparent 60%
+    );
+  }
+
+  /* ── Copy ──────────────────────────────────────────────────────────────── */
+
+  .jstep__kicker {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-dim);
+    margin-bottom: 14px;
+  }
+
+  .jstep__kicker-n {
+    color: var(--color-rose-text);
+  }
+
+  .jstep__kicker-n::after {
+    content: '';
+    display: inline-block;
+    width: 22px;
+    height: 1px;
+    margin-left: 10px;
+    vertical-align: middle;
+    background: var(--color-line-strong);
+  }
+
+  .jstep__title {
+    font-size: var(--text-h3);
+    line-height: 1.12;
+    letter-spacing: -0.022em;
+    color: var(--color-bone);
+    text-wrap: balance;
+  }
+
+  /* Held until SplitText has wrapped the words, so nothing paints unmasked in
+     the gap before the split; released by the failsafe if it never runs.
+     Keyed on the data attribute, not the class — the closing card borrows the
+     title class and is never split. */
+  :global(html.js) [data-step-title] {
+    opacity: 0;
+  }
+  :global(html.js) [data-step-title].is-split {
+    opacity: 1;
+  }
+
+  .jstep__body {
+    margin-top: 14px;
+    font-size: var(--text-body);
+    line-height: 1.68;
+    color: var(--color-slate);
+    max-width: 46ch;
+  }
+
+  .jstep__rule {
+    display: block;
+    height: 1px;
+    margin-top: 22px;
+    background: linear-gradient(90deg, var(--color-line-strong), var(--color-line) 60%, transparent);
+    transform-origin: left;
+  }
+  :global(html.js) .jstep__rule {
+    transform: scaleX(0);
+  }
+
+  .jstep__list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px 20px;
+    margin: 0;
+    padding: 16px 0 0;
+    list-style: none;
+  }
+
+  /* Small phones: long mono words ("INFRASTRUCTURE") are wider than half the
+     column, so the list drops to one column instead of running off the edge. */
+  @media (max-width: 399px) {
+    .jstep__list {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  .jstep__item {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    line-height: 1.35;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--color-dim);
+    transition: color var(--ds-dur) var(--ds-ease);
+  }
+
+  .jstep__item:hover {
+    color: var(--color-bone);
+  }
+
+  /* :global() — the check is a child component's root <svg>, outside this
+     component's style scope. */
+  .jstep__item :global(.jstep__check) {
+    flex-shrink: 0;
+    /* Sits on the first line's x-height when the label wraps. */
+    margin-top: 1px;
+    color: var(--color-line-strong);
+    transition: color var(--ds-dur) var(--ds-ease);
+  }
+  .jstep__item:hover :global(.jstep__check) {
+    color: var(--color-rose);
+  }
+
+  /* Choreographed children start hidden and are released one by one by the
+     step's own timeline. Gated on html.js like every other reveal. */
+  :global(html.js) [data-chor]:not(.is-in) {
+    opacity: 0;
+    transform: translate3d(0, 22px, 0);
+  }
+
+  /* ── Closing card ──────────────────────────────────────────────────────── */
+
+  .jrn__cta {
+    position: relative;
+    display: grid;
+    justify-items: start;
+    gap: 16px;
+    margin-top: clamp(56px, 7vw, 96px);
+    padding: clamp(26px, 3vw, 40px);
+    background: var(--color-surface-2);
+    border: 1px solid var(--color-line-strong);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: border-color var(--ds-dur-slow) var(--ds-ease);
+  }
+
+  .jrn__cta:hover {
+    border-color: var(--ds-line-hover-soft);
+  }
+
+  /* The comet arrives here: the one place in the section where rose is
+     allowed to wash rather than mark. */
+  .jrn__cta-glow {
+    position: absolute;
+    top: -40%;
+    left: 50%;
+    width: 60%;
+    height: 80%;
+    transform: translateX(-50%);
+    background: radial-gradient(50% 50% at 50% 50%, var(--ds-rose-veil), transparent 70%);
+    pointer-events: none;
+  }
+
+  .jrn__cta-title {
+    position: relative;
+  }
+
+  .jrn__cta .jstep__body {
+    position: relative;
+    margin-top: 0;
+  }
+
+  .jrn__cta .btn {
+    position: relative;
+  }
+
+  /* ── Two columns, alternating ──────────────────────────────────────────── */
+
+  @media (min-width: 900px) {
+    .jrn__head {
+      grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+      align-items: end;
+    }
+
+    .jrn__spine {
+      left: 50%;
+    }
+
+    .jstep {
+      padding-left: 0;
+    }
+
+    /* The badge sits in the gap between rows, on the spine's axis. */
+    .jstep__badge {
+      position: relative;
+      width: 46px;
+      height: 40px;
+      margin: 0 auto clamp(22px, 2.6vw, 34px);
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      border-radius: var(--radius-md);
+    }
+
+    .jstep__grid {
+      position: relative;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-items: center;
+      /* No column gap: the spine is the gap. The copy carries its own inset
+         off the line so the two sides are separated by rule, not by air. */
+      column-gap: 0;
+    }
+
+    .jstep__visual {
+      /* Odd rows: picture left of the spine, so it unfolds right → left. */
+      margin-right: clamp(34px, 4vw, 62px);
+    }
+    :global(html.js) .jstep__visual {
+      clip-path: inset(0 0 0 100% round var(--radius-lg));
+    }
+
+    .jstep__copy {
+      padding-inline-start: clamp(34px, 4vw, 62px);
+    }
+
+    .jstep:nth-child(even) .jstep__visual {
+      order: 2;
+      margin-right: 0;
+      margin-left: clamp(34px, 4vw, 62px);
+    }
+    :global(html.js) .jstep:nth-child(even) .jstep__visual {
+      clip-path: inset(0 100% 0 0 round var(--radius-lg));
+    }
+
+    .jstep:nth-child(even) .jstep__copy {
+      order: 1;
+      padding-inline: 0 clamp(34px, 4vw, 62px);
+    }
+
+    /* Copy on the right rises from the spine side, so the kicker's rule points
+       back at the line it came from. */
+    .jstep:nth-child(even) .jstep__kicker {
+      flex-direction: row-reverse;
+      justify-content: flex-start;
+    }
+    .jstep:nth-child(even) .jstep__kicker-n {
+      display: inline-flex;
+      flex-direction: row-reverse;
+    }
+    .jstep:nth-child(even) .jstep__kicker-n::after {
+      margin-left: 0;
+      margin-right: 10px;
+    }
+    .jstep:nth-child(even) .jstep__rule {
+      transform-origin: right;
+      background: linear-gradient(270deg, var(--color-line-strong), var(--color-line) 60%, transparent);
+    }
+    .jstep:nth-child(even) .jstep__copy {
+      text-align: right;
+    }
+    .jstep:nth-child(even) .jstep__body {
+      margin-left: auto;
+    }
+    .jstep:nth-child(even) .jstep__item {
+      flex-direction: row-reverse;
+      text-align: right;
+    }
+
+    .jrn__cta {
+      justify-items: center;
+      text-align: center;
+      max-width: 620px;
+      margin-inline: auto;
+    }
+
+    .jrn__cta .jstep__body {
+      margin-inline: auto;
+    }
+  }
+
+  /* The HUD only where there is honest room for it: past 1440px the shell's
+     outside margin plus its gutter clears 128px on each side. */
+  @media (min-width: 1440px) {
+    .jrn__hud {
+      display: block;
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: calc(100% + 26px);
+      width: 88px;
+      pointer-events: none;
+    }
+
+    .jrn__hud-sticky {
+      position: sticky;
+      top: 42vh;
+      display: grid;
+      gap: 10px;
+      justify-items: start;
+    }
+
+    .jrn__hud-now {
+      font-family: var(--font-display);
+      font-variation-settings: 'wdth' 112;
+      font-size: 2.5rem;
+      font-weight: 600;
+      line-height: 0.9;
+      letter-spacing: -0.03em;
+      color: var(--color-bone);
+    }
+
+    .jrn__hud-of {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      letter-spacing: 0.12em;
+      color: var(--color-dim);
+    }
+
+    .jrn__hud-bar {
+      display: block;
+      width: 100%;
+      height: 1px;
+      background: var(--color-line-strong);
+      overflow: hidden;
+    }
+    .jrn__hud-bar > span {
+      display: block;
+      height: 100%;
+      background: var(--color-rose);
+      transform: scaleX(0);
+      transform-origin: left;
+      will-change: transform;
+    }
+
+    .jrn__hud-label {
+      font-family: var(--font-mono);
+      font-size: 0.5625rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      line-height: 1.5;
+      color: var(--color-dim);
+      max-width: 92px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .jstep__visual,
+    .jstep:nth-child(even) .jstep__visual {
+      transform: none;
+      clip-path: none !important;
+    }
+    .jstep__badge::after {
+      animation: none;
+    }
+    /* The spine is drawn in full here, so every badge reads as reached. */
+    .jstep__badge {
+      border-color: var(--color-rose);
+      color: var(--color-rose-text);
+    }
+    .jrn__spine-fill {
+      transform: none !important;
+    }
+    .jrn__comet {
+      display: none;
+    }
+    .jstep__rule {
+      transform: none !important;
+    }
+    [data-step-title],
+    [data-chor] {
+      opacity: 1 !important;
+      transform: none !important;
+    }
+  }
+</style>

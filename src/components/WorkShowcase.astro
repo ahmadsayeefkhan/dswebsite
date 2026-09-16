@@ -1,0 +1,768 @@
+---
+/**
+ * Selected work — the projection room.
+ *
+ * Seven projects, one screen. On a capable desktop the section becomes a
+ * room: a viewport-tall stage sticks to the top of the window while the seven
+ * project articles scroll over it, and a single WebGL plate on the stage
+ * shows whichever project the reader is on — the still, or the ambient loop
+ * once it is playing. Between projects the plate does not cut: scroll scrubs
+ * an ink-wipe shader from one plate to the next (scripts/workStage.ts), so a
+ * half-scrolled position is a genuine blend and the reader owns the clock.
+ * A ghost numeral behind the screen rolls like an odometer, and the strip
+ * under the plate is the progress meter the guideline asks of anything
+ * pinned (03 §10.4) — plus an index that jumps to any project.
+ *
+ * ── One DOM, three renderings ──────────────────────────────────────────────
+ * There is no separate caption panel and no duplicated copy. The articles ARE
+ * the copy: on the desktop stage each one's figure is visually hidden (still
+ * read by assistive tech, still the loop element the stage plays) and its
+ * text sits in the left column of its viewport-tall step. Everywhere else —
+ * touch, a small screen, no JavaScript, reduced motion, no WebGL, a lost GL
+ * context — the same articles render as an editorial sequence of plates:
+ * full-width media, then the copy. `.is-flat`, set by motion.ts, is the
+ * hand-back switch for the runtime failures; the media query and `html.js`
+ * decide the rest before first paint.
+ *
+ * The stage's canvas is aria-hidden and the strip's read-out is aria-hidden:
+ * both are mirrors of what the articles already say. The index buttons are
+ * real buttons, in the tree, with the project's name on each.
+ */
+import Icon from './Icon.astro';
+import ProjectVisual from './ProjectVisual.astro';
+import { projects } from '../data/content';
+
+const total = String(projects.length).padStart(2, '0');
+---
+
+<section class="section work" id="work" data-work>
+  <div class="shell">
+    <p class="meta work__eyebrow" data-reveal="fade">
+      <span class="meta__counter">04</span>
+      <span class="meta__slash" aria-hidden="true">/</span>
+      Selected work
+    </p>
+
+    {/* Services (03) and Work (04) sit next to each other. Work opens on scale
+        rather than on a split: the headline runs full-bleed and the lede drops
+        beneath it into a narrow right-hand column. */}
+    <div class="work__head">
+      <h2 class="work__headline wdth-h2" data-reveal="lines">
+        Engineered for impact, built for scale<span class="period">.</span>
+      </h2>
+      <div class="work__aside">
+        <span class="work__rule" aria-hidden="true"></span>
+        <p class="work__lead" data-reveal="fade">
+          Seven systems, seven different problems. An ERP that runs a factory floor, a POS that clears a
+          queue, a CRM that chases a lease — plus the brands and platforms around them. Every one is
+          still in service.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="work__room" data-work-room>
+    {/* ── The stage ─────────────────────────────────────────────────────────
+        Sticky and viewport-tall on the desktop stage; display:none everywhere
+        else. Everything inside is a mirror of the articles below it, so the
+        whole thing is hidden from the tree except the index buttons. */}
+    <div class="work__stage" data-work-stage>
+      <div class="work__screen">
+        <span class="work__aura" aria-hidden="true"></span>
+
+        {/* The odometer. Two numerals stacked in a mask; motion.ts slides the
+            track by the fractional scroll position between projects. */}
+        <div class="work__ghost" aria-hidden="true">
+          <div class="work__ghost-track" data-work-ghost>
+            <span data-work-ghost-a>{projects[0]?.number}</span>
+            <span data-work-ghost-b>{projects[1]?.number}</span>
+          </div>
+        </div>
+
+        <div class="work__plate" data-work-plate data-cursor-label="Next" aria-hidden="true">
+          <canvas class="work__canvas" data-work-canvas></canvas>
+          <span class="work__plate-frame"></span>
+        </div>
+
+        <div class="work__strip">
+          <span class="work__bar" aria-hidden="true"><span data-work-bar></span></span>
+          <div class="work__strip-row">
+            <p class="work__now" aria-hidden="true">
+              <span class="tnum" data-work-now>{projects[0]?.number}</span>
+              <span class="work__of tnum">/ {total}</span>
+              <span class="work__now-name" data-work-name>{projects[0]?.name}</span>
+            </p>
+            <ol class="work__index" aria-label="Jump to a project">
+              {
+                projects.map((p, i) => (
+                  <li>
+                    <button
+                      type="button"
+                      class="work__idx tnum"
+                      data-work-jump={i}
+                      aria-label={`${p.number} — ${p.name}`}
+                    >
+                      {p.number}
+                    </button>
+                  </li>
+                ))
+              }
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* ── The articles ──────────────────────────────────────────────────────
+        The content. Real articles in order, each with its own media, so the
+        section is complete with the stage removed. */}
+    <ol class="work__steps" data-work-steps>
+      {
+        projects.map((p, i) => (
+          <li
+            class="work__step"
+            data-work-step
+            data-work-index={i}
+            data-work-number={p.number}
+            data-work-name={p.name}
+            data-work-still={p.media ? `/images/work/${p.media.base}.webp` : undefined}
+          >
+            <article class="work__item">
+              <figure class="work__figure" data-work-figure data-reveal="clip">
+                {
+                  p.media ? (
+                    <>
+                      {/* The still is the real content: it is what loads,
+                          what prints, what a reduced-motion visitor keeps,
+                          and what shows if the loop never arrives. */}
+                      <picture>
+                        <source srcset={`/images/work/${p.media.base}.webp`} type="image/webp" />
+                        <img
+                          class="work__img"
+                          src={`/images/work/${p.media.base}.jpg`}
+                          alt={p.media.alt}
+                          width="1600"
+                          height="900"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      </picture>
+
+                      {p.media.video && (
+                        <video
+                          class="work__video"
+                          data-work-video
+                          data-src={`/video/work/${p.media.base}.mp4`}
+                          poster={`/images/work/${p.media.base}.jpg`}
+                          muted
+                          loop
+                          playsinline
+                          preload="none"
+                          aria-hidden="true"
+                          tabindex="-1"
+                        />
+                      )}
+                    </>
+                  ) : (
+                    <ProjectVisual name={p.visual} class="work__svg" />
+                  )
+                }
+              </figure>
+
+              <div class="work__copy" data-work-copy>
+                <p class="work__meta" data-work-chor>
+                  <span class="work__num tnum">{p.number}</span>
+                  <span class="work__sector">{p.sector}</span>
+                </p>
+
+                <h3 class="work__title" data-work-title>{p.name}</h3>
+                <p class="work__desc" data-work-chor>{p.description}</p>
+
+                <ul class="work__tags" data-work-chor>
+                  {p.tags.map((tag) => (
+                    <li>
+                      <span class="tag">{tag}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                {p.liveUrl && (
+                  <a class="work__live" data-work-chor href={p.liveUrl} target="_blank" rel="noopener">
+                    View live site
+                    <Icon name="arrow-up-right" size={15} class="btn__icon" />
+                  </a>
+                )}
+              </div>
+            </article>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  /* ── Head ──────────────────────────────────────────────────────────────── */
+
+  .work {
+    /* The shell's content edge, as a length: the stage is full-width and lays
+       its columns out against this so the copy lines up with every other
+       section. `100%` resolves against whatever uses the property, and both
+       users below are as wide as the section. */
+    --work-inset: max(var(--ds-gutter), calc((100% - var(--container-page)) / 2 + var(--ds-gutter)));
+    /* The screen breaks the shell to the right — up to 120px — so it reads
+       as bigger than the column of type it sits beside without drifting
+       off-centre on a very wide window. */
+    --work-bleed: clamp(0px, calc(var(--work-inset) - var(--ds-gutter)), 120px);
+    --work-inset-r: calc(var(--work-inset) - var(--work-bleed));
+    /* The art's own ground. The plate paints this before its first frame and
+       under the media's dead margin, in both themes: the pictures are plum,
+       and a white flash behind a plum picture would be the one thing worse
+       than a black one. */
+    --work-ground: #110d15;
+    overflow: clip;
+  }
+
+  .work__eyebrow {
+    margin-bottom: clamp(32px, 4vw, 52px);
+  }
+
+  .work__head {
+    display: grid;
+    gap: clamp(20px, 3vw, 40px);
+    margin-bottom: clamp(44px, 5vw, 72px);
+  }
+
+  .work__headline {
+    font-size: clamp(2rem, 5.6vw, 4.75rem);
+    line-height: 0.94;
+    letter-spacing: -0.035em;
+    max-width: 20ch;
+  }
+
+  .work__aside {
+    display: grid;
+    gap: 18px;
+  }
+
+  .work__rule {
+    display: block;
+    height: 1px;
+    background: linear-gradient(90deg, var(--color-line-strong), transparent);
+  }
+
+  .work__lead {
+    font-size: var(--text-lead);
+    line-height: 1.62;
+    color: var(--color-slate);
+    max-width: 52ch;
+  }
+
+  @media (min-width: 900px) {
+    .work__aside {
+      grid-template-columns: minmax(0, 1fr);
+      justify-items: end;
+      margin-left: auto;
+      width: min(100%, 46ch);
+    }
+    .work__rule {
+      width: 100%;
+    }
+  }
+
+  /* ── Plates — the default rendering ────────────────────────────────────
+     Touch, small screens, no JS, reduced motion, no WebGL. A vertical
+     editorial sequence: media, then copy, one project after another.     */
+
+  .work__room {
+    position: relative;
+  }
+
+  .work__stage {
+    display: none;
+  }
+
+  .work__steps {
+    list-style: none;
+    margin: 0;
+    padding: 0 var(--work-inset);
+    display: grid;
+    gap: clamp(56px, 8vw, 104px);
+  }
+
+  .work__item {
+    display: grid;
+    gap: clamp(20px, 3vw, 30px);
+  }
+
+  .work__figure {
+    position: relative;
+    margin: 0;
+    aspect-ratio: 16 / 10;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: var(--work-ground);
+    border: 1px solid var(--color-line);
+    box-shadow: 0 30px 70px -32px rgb(0 0 0 / 0.7);
+  }
+
+  .work__figure picture {
+    display: contents;
+  }
+
+  /* Still and loop are both 16:9 and both `cover`, so they crop along the
+     same axis and the fade between them never shifts the framing. */
+  .work__img,
+  .work__video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .work__figure :global(.work__svg) {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .work__video {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    /* Slower than --ds-dur: this is ambience arriving, not a state change. */
+    transition: opacity 600ms var(--ds-ease);
+  }
+
+  /* Set by the script only once the loop is genuinely playing, so a video
+     that stalls or is blocked never blanks the still underneath it. */
+  .work__video.is-playing {
+    opacity: 1;
+  }
+
+  .work__meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-dim);
+  }
+
+  .work__num {
+    font-weight: 500;
+    color: var(--color-rose-text);
+  }
+
+  .work__num::after {
+    content: '';
+    display: inline-block;
+    width: 22px;
+    height: 1px;
+    margin-left: 12px;
+    vertical-align: middle;
+    background: var(--color-line-strong);
+  }
+
+  .work__title {
+    font-size: var(--text-h3);
+    line-height: 1.12;
+    letter-spacing: -0.022em;
+    color: var(--color-bone);
+    text-wrap: balance;
+  }
+
+  /* Held until SplitText has wrapped the lines, so nothing paints unmasked
+     in the gap before the split; released by the failsafe if it never runs. */
+  :global(html.js) [data-work-title] {
+    opacity: 0;
+  }
+  :global(html.js) [data-work-title].is-split {
+    opacity: 1;
+  }
+
+  .work__desc {
+    margin-top: 14px;
+    max-width: 56ch;
+    font-size: var(--text-body);
+    line-height: 1.68;
+    color: var(--color-slate);
+  }
+
+  .work__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 20px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* The live-site action glows in the brand colour on hover. A single,
+     transient, terminal mark — within the scarcity rule. */
+  .work__live {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    justify-self: start;
+    margin-top: 22px;
+    height: 38px;
+    padding-inline: 16px;
+    border: 1px solid var(--color-line-strong);
+    border-radius: var(--radius-md);
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-slate);
+    transition:
+      color var(--ds-dur) var(--ds-ease),
+      border-color var(--ds-dur) var(--ds-ease),
+      box-shadow var(--ds-dur) var(--ds-ease),
+      background-color var(--ds-dur) var(--ds-ease);
+  }
+
+  .work__live:hover {
+    color: var(--color-bone);
+    border-color: var(--color-rose);
+    background: var(--ds-rose-veil);
+    box-shadow: 0 0 0 4px rgb(203 74 104 / 0.12);
+  }
+
+  /* Choreographed children start hidden and are released one by one by the
+     step's own timeline. Gated on html.js like every other reveal. */
+  :global(html.js) [data-work-chor]:not(.is-in) {
+    opacity: 0;
+    transform: translate3d(0, 22px, 0);
+  }
+
+  @media (min-width: 720px) {
+    .work__figure {
+      aspect-ratio: 16 / 9;
+    }
+    .work__copy {
+      display: grid;
+      justify-items: start;
+    }
+  }
+
+  /* ── The room — desktop, fine pointer, motion allowed ───────────────────
+     Everything below is additive: it never applies without html.js, so a
+     failed script leaves the plates layout above intact. `.is-flat` is the
+     runtime hand-back (no WebGL, lost context, Save-Data).                 */
+
+  @media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+    :global(html.js) .work:not(.is-flat) .work__stage {
+      display: block;
+      position: sticky;
+      top: 0;
+      z-index: 0;
+      height: 100vh;
+      height: 100svh;
+      overflow: clip;
+    }
+
+    /* The same two columns as the steps below, so the copy of each step
+       lands exactly beside the screen. */
+    :global(html.js) .work:not(.is-flat) .work__screen {
+      position: relative;
+      display: grid;
+      grid-template-columns:
+        var(--work-inset) minmax(0, 34fr) minmax(0, 66fr)
+        var(--work-inset-r);
+      /* Rows pack and centre as one block — screen over strip — so the
+         plate sits a strip's half-height above the viewport's centre, and
+         the copy below carries the same offset to meet it. */
+      align-content: center;
+      align-items: center;
+      height: 100%;
+    }
+
+    :global(html.js) .work:not(.is-flat) .work__aura,
+    :global(html.js) .work:not(.is-flat) .work__ghost,
+    :global(html.js) .work:not(.is-flat) .work__plate,
+    :global(html.js) .work:not(.is-flat) .work__strip {
+      grid-column: 3;
+    }
+
+    /* The screen: right-aligned in its column, no taller than leaves room
+       for the numeral above it and the strip below. */
+    :global(html.js) .work:not(.is-flat) .work__plate {
+      position: relative;
+      z-index: 1;
+      grid-row: 1;
+      width: min(100%, calc(66svh * 16 / 9));
+      aspect-ratio: 16 / 9;
+      margin-left: auto;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      background: var(--work-ground);
+      border: 1px solid var(--color-line);
+      box-shadow: 0 40px 90px -36px rgb(0 0 0 / 0.75);
+      transform: translateZ(0);
+    }
+    :global(html[data-theme='light']) .work:not(.is-flat) .work__plate {
+      border-color: var(--color-line-strong);
+      box-shadow: 0 40px 90px -40px rgb(25 20 32 / 0.45);
+    }
+
+    :global(html.js) .work:not(.is-flat) .work__canvas {
+      position: absolute;
+      inset: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      transition: opacity 700ms var(--ds-ease);
+    }
+    /* Only painted once the stage has drawn a textured frame; until then the
+       ground shows, which is the art's own ground. */
+    :global(html.js) .work:not(.is-flat) .work__plate.is-ready .work__canvas {
+      opacity: 1;
+    }
+
+    /* Edge light: the hairline that says "glass", drawn over the canvas so
+       nothing the shader does can push past it. */
+    :global(html.js) .work:not(.is-flat) .work__plate-frame {
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      box-shadow:
+        inset 0 1px 0 rgb(237 237 237 / 0.08),
+        inset 0 0 0 1px rgb(237 237 237 / 0.035);
+    }
+
+    /* The plum wash behind the screen — ambient ground, never a glow blob
+       (02 §5). Static, so it rasterises once. */
+    :global(html.js) .work:not(.is-flat) .work__aura {
+      grid-row: 1;
+      justify-self: end;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      max-height: 66svh;
+      transform: scale(1.35, 1.6);
+      background: radial-gradient(50% 50% at 50% 50%, var(--ds-aura), transparent 70%);
+      pointer-events: none;
+    }
+
+    /* The ghost numeral. Outlined, oversized, behind the screen — the index
+       of the room, the way a slide's number is printed on its mount. The
+       mask shows one numeral; the track holds this one and the next. */
+    :global(html.js) .work:not(.is-flat) .work__ghost {
+      position: relative;
+      grid-row: 1;
+      z-index: 0;
+      align-self: start;
+      justify-self: start;
+      /* The row is the plate's height and the numeral starts at its top,
+         so the shift is all that places it: up and out past the corner. */
+      transform: translate(-0.3em, -0.46em);
+      height: 0.82em;
+      overflow: hidden;
+      font-family: var(--font-display);
+      font-variation-settings: 'wdth' 125;
+      font-weight: 700;
+      font-size: clamp(9rem, 17vw, 16rem);
+      line-height: 0.82;
+      letter-spacing: -0.06em;
+      color: transparent;
+      -webkit-text-stroke: 1px var(--color-line-strong);
+      pointer-events: none;
+      user-select: none;
+    }
+    :global(html.js) .work:not(.is-flat) .work__ghost-track {
+      will-change: transform;
+    }
+    :global(html.js) .work:not(.is-flat) .work__ghost-track > span {
+      display: block;
+      height: 0.82em;
+    }
+
+    /* ── The strip: progress meter + index ─────────────────────────────── */
+
+    :global(html.js) .work:not(.is-flat) .work__strip {
+      grid-row: 2;
+      width: min(100%, calc(66svh * 16 / 9));
+      margin-left: auto;
+      margin-top: 18px;
+      display: grid;
+      gap: 14px;
+      z-index: 1;
+    }
+
+    :global(html.js) .work:not(.is-flat) .work__bar {
+      display: block;
+      height: 1px;
+      background: var(--color-line-strong);
+      overflow: hidden;
+    }
+    :global(html.js) .work:not(.is-flat) .work__bar > span {
+      display: block;
+      height: 100%;
+      background: var(--color-rose);
+      opacity: 0.7;
+      transform: scaleX(0);
+      transform-origin: left;
+      will-change: transform;
+    }
+
+    :global(html.js) .work:not(.is-flat) .work__strip-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    :global(html.js) .work:not(.is-flat) .work__now {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      min-width: 0;
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--color-dim);
+    }
+    :global(html.js) .work:not(.is-flat) .work__now [data-work-now] {
+      font-weight: 500;
+      color: var(--color-bone);
+    }
+    :global(html.js) .work:not(.is-flat) .work__now-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      will-change: transform, opacity;
+    }
+
+    :global(html.js) .work:not(.is-flat) .work__index {
+      display: flex;
+      gap: 2px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      flex-shrink: 0;
+    }
+
+    :global(html.js) .work:not(.is-flat) .work__idx {
+      height: 28px;
+      padding-inline: 8px;
+      border: 1px solid transparent;
+      border-radius: var(--radius-sm);
+      background: transparent;
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      letter-spacing: 0.1em;
+      color: var(--color-dim);
+      cursor: pointer;
+      transition:
+        color var(--ds-dur) var(--ds-ease),
+        border-color var(--ds-dur) var(--ds-ease),
+        background-color var(--ds-dur) var(--ds-ease);
+    }
+    :global(html.js) .work:not(.is-flat) .work__idx:hover {
+      color: var(--color-bone);
+      border-color: var(--color-line-strong);
+    }
+    :global(html.js) .work:not(.is-flat) .work__idx.is-passed {
+      color: var(--color-slate);
+    }
+    :global(html.js) .work:not(.is-flat) .work__idx.is-active {
+      color: var(--color-bone);
+      border-color: var(--color-line-strong);
+      background: var(--color-surface-2);
+    }
+
+    /* ── The steps: seven viewport-tall pages over the stage ───────────── */
+
+    :global(html.js) .work:not(.is-flat) .work__steps {
+      position: relative;
+      z-index: 1;
+      display: block;
+      padding: 0;
+      /* Pulled up over the stage: the room is exactly as tall as the steps,
+         and the stage sticks for all of it but the last page. */
+      margin-top: -100vh;
+      margin-top: -100svh;
+      /* The layer covers the whole width; only the copy takes the pointer,
+         so the screen and the index underneath stay clickable. */
+      pointer-events: none;
+    }
+
+    :global(html.js) .work:not(.is-flat) .work__step {
+      min-height: 100vh;
+      min-height: 100svh;
+      display: grid;
+      grid-template-columns:
+        var(--work-inset) minmax(0, 34fr) minmax(0, 66fr)
+        var(--work-inset-r);
+      align-content: center;
+    }
+
+    :global(html.js) .work:not(.is-flat) .work__item {
+      display: contents;
+    }
+
+    /* Visually gone, still in the tree: the alt text is read, the loop
+       element is what the stage plays. */
+    :global(html.js) .work:not(.is-flat) .work__figure {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      opacity: 0;
+      border: 0;
+      box-shadow: none;
+      pointer-events: none;
+    }
+
+    :global(html.js) .work:not(.is-flat) .work__copy {
+      grid-column: 2;
+      pointer-events: auto;
+      padding-right: clamp(28px, 3.4vw, 56px);
+      /* The strip's height: the screen is centred with its strip as one
+         block, so the copy centres on the screen, not on the viewport. */
+      padding-bottom: 62px;
+      /* Faded by scroll position in motion.ts, so only the project the
+         screen is showing reads at full strength. */
+      will-change: opacity;
+    }
+
+    :global(html.js) .work:not(.is-flat) .work__title {
+      font-size: clamp(1.75rem, 2.5vw, 2.5rem);
+      line-height: 1.04;
+      letter-spacing: -0.03em;
+      font-variation-settings: 'wdth' 108;
+    }
+
+    :global(html.js) .work:not(.is-flat) .work__desc {
+      max-width: 40ch;
+    }
+  }
+
+  /* ── Reduced motion ──────────────────────────────────────────────────────
+     html.js is never added here, so the plates layout applies on its own.
+     These guard the mid-session switch, when the class is stripped after
+     GSAP has already written inline states. */
+  @media (prefers-reduced-motion: reduce) {
+    .work__stage {
+      display: none !important;
+    }
+    .work__video {
+      display: none;
+    }
+    [data-work-title],
+    [data-work-chor],
+    [data-work-copy] {
+      opacity: 1 !important;
+      transform: none !important;
+    }
+    .work__figure {
+      clip-path: none !important;
+    }
+  }
+</style>

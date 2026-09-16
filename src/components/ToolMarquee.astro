@@ -1,0 +1,189 @@
+---
+/**
+ * Three-lane kinetic marquee, velocity-linked.
+ *
+ * Each tool shows the vendor's own mark. The marks are single-colour SVGs in
+ * public/logos, painted with a CSS mask rather than an <img>: the mask takes
+ * only the alpha of the file, so the fill is ours — --color-dim at rest,
+ * --color-bone on hover, exactly the values the wordmarks used. The band stays
+ * monochrome and the browser still caches 48 small files instead of us inlining
+ * them twice per lane. A tool with no confirmed mark keeps its wordmark; a
+ * fabricated logo would look exactly like what it is (guideline 01 §7).
+ *
+ * GSAP drives the loop so scroll velocity can feed its timeScale: the lanes
+ * accelerate when the reader moves and reverse when they scroll back up. The
+ * track holds each list exactly twice and travels exactly -50%, so the loop
+ * has no seam. See scripts/motion.ts → initMarquees.
+ */
+import { marqueeLanes } from '../data/content';
+---
+
+<section class="marquee section--sm" aria-label="Tools we work in">
+  <div class="shell">
+    <p class="meta marquee__label" data-reveal="fade">The stack we work in, every day</p>
+  </div>
+
+  <div class="marquee__lanes">
+    {
+      marqueeLanes.map((lane) => (
+        <div
+          class="lane edge-fade"
+          data-lane={lane.direction}
+          data-speed={lane.speed}
+          role="group"
+          aria-label={`${lane.label} tools`}
+        >
+          {/* The lane's name, pinned at the fade edge so the three bands read
+              as a labelled stack rather than an anonymous ticker. */}
+          <span class="lane__tag" aria-hidden="true">{lane.label}</span>
+          <div class="lane__track" data-lane-track>
+            {[0, 1].map((copy) => (
+              <ul class="lane__list" aria-hidden={copy === 1 ? 'true' : undefined}>
+                {lane.items.map((item) => (
+                  <li class="lane__item">
+                    {item.logo ? (
+                      <span
+                        class="lane__logo"
+                        style={`--logo:url('/logos/${item.logo}.svg')`}
+                        role="img"
+                        aria-label={item.name}
+                      />
+                    ) : (
+                      <span class="lane__name">{item.name}</span>
+                    )}
+                    <span class="lane__sep" aria-hidden="true">
+                      ·
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ))}
+          </div>
+        </div>
+      ))
+    }
+  </div>
+</section>
+
+<style>
+  .marquee {
+    position: relative;
+    border-block: 1px solid var(--color-line);
+    background: var(--color-surface);
+    overflow: hidden;
+  }
+
+  .marquee__label {
+    margin-bottom: 26px;
+  }
+
+  .marquee__lanes {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .lane {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .lane__tag {
+    position: absolute;
+    top: 50%;
+    left: var(--ds-gutter);
+    z-index: 1;
+    transform: translateY(-50%);
+    padding: 3px 8px;
+    border: 1px solid var(--color-line-strong);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    font-family: var(--font-mono);
+    font-size: 0.5625rem;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-dim);
+    pointer-events: none;
+  }
+
+  /* Under the tag the lane fades anyway, so the mask does the work of
+     separating them; below 768px the tag would eat a third of the band. */
+  @media (max-width: 767px) {
+    .lane__tag {
+      display: none;
+    }
+  }
+
+  .lane__track {
+    display: flex;
+    width: max-content;
+    /* will-change on the three tracks only — never on the items. Thirty
+       promoted layers would cost more than the animation saves. */
+    will-change: transform;
+  }
+
+  .lane__list {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .lane__item {
+    display: flex;
+    align-items: center;
+  }
+
+  /* One square box for every mark, whatever its native aspect: a 22px band of
+     mixed logo heights reads as a mistake. contain keeps wide marks (AWS,
+     Klaviyo) inside the box instead of cropping them. */
+  .lane__logo {
+    flex: none;
+    display: block;
+    width: 22px;
+    height: 22px;
+    background-color: var(--color-dim);
+    -webkit-mask: var(--logo) center / contain no-repeat;
+    mask: var(--logo) center / contain no-repeat;
+    transition: background-color var(--ds-dur-fast) var(--ds-ease);
+  }
+
+  .lane__item:hover .lane__logo {
+    background-color: var(--color-bone);
+  }
+
+  .lane__name {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    letter-spacing: 0.02em;
+    color: var(--color-dim);
+    white-space: nowrap;
+    transition: color var(--ds-dur-fast) var(--ds-ease);
+  }
+
+  .lane__item:hover .lane__name {
+    color: var(--color-bone);
+  }
+
+  .lane__sep {
+    margin-inline: 20px;
+    color: var(--color-rose);
+    opacity: 0.4;
+    font-size: 0.75rem;
+  }
+
+  @media (min-width: 768px) {
+    .lane__logo {
+      width: 26px;
+      height: 26px;
+    }
+    .lane__name {
+      font-size: 0.875rem;
+    }
+    .lane__sep {
+      margin-inline: 26px;
+    }
+  }
+</style>

@@ -1,0 +1,357 @@
+---
+/**
+ * Procedural project visuals.
+ *
+ * We do not have licensed screenshots of these systems, and a grey placeholder
+ * box says nothing while a fabricated screenshot says something untrue. So each
+ * project gets a bespoke abstract representation of the *kind of system* it is:
+ * an ERP reads as a dense planning grid, a POS as a keypad and a total, a CRM
+ * as a pipeline board. Honest about being a representation, specific enough to
+ * be informative, and on-palette by construction. Guideline 02 §8.
+ *
+ * Every visual: dark surface ground, hairline structure, bone shapes — and
+ * exactly one rose element. The scarcity rule holds inside the artwork too.
+ */
+export type VisualName = 'erp' | 'commerce' | 'pos' | 'crm' | 'brand' | 'nonprofit';
+
+interface Props {
+  name: VisualName;
+  class?: string;
+}
+
+const { name, class: className = '' } = Astro.props;
+
+/* Read through the tokens rather than the raw hexes so the artwork re-grounds
+   with the rest of the page in light mode. The fallbacks are the original dark
+   values: if a var ever fails to resolve the visual degrades to the palette it
+   shipped with, not to black. */
+const C = {
+  ground: 'var(--color-surface, #141118)',
+  panel: 'var(--color-surface-2, #1C1822)',
+  panel2: 'var(--color-surface-3, #241F2B)',
+  line: 'var(--color-line, #2C2433)',
+  lineUp: 'var(--color-line-strong, #3A3243)',
+  bone: 'var(--color-bone, #EDEDED)',
+  slate: 'var(--color-slate, #9A93A3)',
+  dim: 'var(--color-dim, #7E7688)',
+  rose: 'var(--color-rose, #CB4A68)',
+};
+---
+
+<svg
+  viewBox="0 0 800 500"
+  preserveAspectRatio="xMinYMin slice"
+  role="img"
+  aria-label="Abstract representation of the system"
+  class={className}
+  width="800"
+  height="500"
+>
+  <rect width="800" height="500" fill={C.ground} />
+
+  {/* Hairline substrate, shared by every visual — the grid the system sits on */}
+  <g stroke={C.line} stroke-width="1" opacity="0.55">
+    {Array.from({ length: 15 }, (_, i) => <line x1={(i + 1) * 50} y1="0" x2={(i + 1) * 50} y2="500" />)}
+    {Array.from({ length: 9 }, (_, i) => <line x1="0" y1={(i + 1) * 50} x2="800" y2={(i + 1) * 50} />)}
+  </g>
+
+  {
+    name === 'erp' && (
+      <g>
+        {/* Sidebar rail */}
+        <rect x="40" y="40" width="64" height="420" rx="10" fill={C.panel} stroke={C.line} />
+        {Array.from({ length: 6 }, (_, i) => (
+          <rect x="58" y={70 + i * 34} width="28" height="4" rx="2" fill={C.dim} opacity={i === 0 ? 0.9 : 0.35} />
+        ))}
+        <rect x="58" y="64" width="28" height="16" rx="4" fill={C.rose} opacity="0.18" />
+
+        {/* KPI row */}
+        {[0, 1, 2].map((i) => (
+          <g>
+            <rect x={124 + i * 216} y="40" width="200" height="86" rx="10" fill={C.panel} stroke={C.line} />
+            <rect x={144 + i * 216} y="60" width="52" height="5" rx="2.5" fill={C.dim} opacity="0.5" />
+            <rect x={144 + i * 216} y="79" width={92 - i * 16} height="16" rx="4" fill={C.bone} opacity="0.85" />
+            <rect x={144 + i * 216} y="105" width={38 + i * 12} height="4" rx="2" fill={C.slate} opacity="0.3" />
+          </g>
+        ))}
+
+        {/* Production chart */}
+        <rect x="124" y="144" width="416" height="182" rx="10" fill={C.panel} stroke={C.line} />
+        <g>
+          {[62, 108, 84, 136, 96, 150, 118, 72, 128, 104].map((h, i) => (
+            <rect
+              x={148 + i * 38}
+              y={306 - h}
+              width="20"
+              height={h}
+              rx="3"
+              fill={i === 5 ? C.rose : C.bone}
+              opacity={i === 5 ? 0.95 : 0.16 + i * 0.035}
+            />
+          ))}
+        </g>
+        <line x1="140" y1="308" x2="524" y2="308" stroke={C.lineUp} />
+
+        {/* Data table */}
+        <rect x="560" y="144" width="200" height="182" rx="10" fill={C.panel} stroke={C.line} />
+        {Array.from({ length: 7 }, (_, i) => (
+          <g>
+            <rect x="578" y={166 + i * 22} width={104 - (i % 3) * 22} height="4" rx="2" fill={C.slate} opacity="0.28" />
+            <rect x="712" y={166 + i * 22} width="30" height="4" rx="2" fill={C.bone} opacity="0.4" />
+          </g>
+        ))}
+
+        {/* Workflow strip */}
+        <rect x="124" y="344" width="636" height="116" rx="10" fill={C.panel} stroke={C.line} />
+        {Array.from({ length: 5 }, (_, i) => (
+          <g>
+            <rect x={148 + i * 124} y="370" width="96" height="64" rx="8" fill={C.panel2} stroke={C.lineUp} />
+            <rect x={162 + i * 124} y="388" width="44" height="4" rx="2" fill={C.dim} opacity="0.6" />
+            <rect x={162 + i * 124} y="400" width="62" height="4" rx="2" fill={C.slate} opacity="0.28" />
+            <circle cx={168 + i * 124} cy="418" r="4" fill={C.bone} opacity="0.35" />
+          </g>
+        ))}
+        {Array.from({ length: 4 }, (_, i) => (
+          <path
+            d={`M${248 + i * 124} 402 L${268 + i * 124} 402`}
+            stroke={C.lineUp}
+            stroke-width="1.5"
+            stroke-dasharray="3 3"
+          />
+        ))}
+      </g>
+    )
+  }
+
+  {
+    name === 'commerce' && (
+      <g>
+        {/* Filter rail */}
+        <rect x="40" y="40" width="150" height="420" rx="10" fill={C.panel} stroke={C.line} />
+        <rect x="62" y="66" width="60" height="5" rx="2.5" fill={C.bone} opacity="0.7" />
+        {Array.from({ length: 8 }, (_, i) => (
+          <g>
+            <rect x="62" y={100 + i * 34} width="12" height="12" rx="3" fill={i === 1 ? C.rose : 'none'} stroke={i === 1 ? C.rose : C.lineUp} opacity={i === 1 ? 0.9 : 1} />
+            <rect x="84" y={104 + i * 34} width={72 - (i % 4) * 12} height="4" rx="2" fill={C.slate} opacity="0.32" />
+          </g>
+        ))}
+
+        {/* Product grid */}
+        {Array.from({ length: 6 }, (_, i) => {
+          const col = i % 3;
+          const row = Math.floor(i / 3);
+          const x = 214 + col * 190;
+          const y = 40 + row * 214;
+          return (
+            <g>
+              <rect x={x} y={y} width="166" height="190" rx="10" fill={C.panel} stroke={C.line} />
+              <rect x={x + 16} y={y + 16} width="134" height="98" rx="6" fill={C.panel2} />
+              <circle cx={x + 83} cy={y + 65} r={22 + (i % 3) * 5} fill={C.bone} opacity={0.08 + i * 0.02} />
+              <rect x={x + 16} y={y + 130} width={98 - (i % 3) * 14} height="5" rx="2.5" fill={C.bone} opacity="0.55" />
+              <rect x={x + 16} y={y + 146} width="58" height="4" rx="2" fill={C.slate} opacity="0.3" />
+              <rect x={x + 16} y={y + 164} width="42" height="12" rx="4" fill={i === 4 ? C.rose : C.bone} opacity={i === 4 ? 0.9 : 0.18} />
+            </g>
+          );
+        })}
+      </g>
+    )
+  }
+
+  {
+    name === 'pos' && (
+      <g>
+        {/* Order list */}
+        <rect x="40" y="40" width="330" height="420" rx="10" fill={C.panel} stroke={C.line} />
+        <rect x="66" y="68" width="86" height="5" rx="2.5" fill={C.bone} opacity="0.7" />
+        {Array.from({ length: 6 }, (_, i) => (
+          <g>
+            <line x1="66" y1={104 + i * 46} x2="344" y2={104 + i * 46} stroke={C.line} />
+            <rect x="66" y={118 + i * 46} width={128 - (i % 3) * 20} height="5" rx="2.5" fill={C.slate} opacity="0.4" />
+            <rect x="66" y={132 + i * 46} width="42" height="4" rx="2" fill={C.dim} opacity="0.3" />
+            <rect x={300 - (i % 2) * 8} y={120 + i * 46} width="44" height="5" rx="2.5" fill={C.bone} opacity="0.5" />
+          </g>
+        ))}
+        <line x1="66" y1="392" x2="344" y2="392" stroke={C.lineUp} />
+        <rect x="66" y="410" width="52" height="5" rx="2.5" fill={C.dim} opacity="0.7" />
+        <rect x="256" y="404" width="88" height="18" rx="4" fill={C.rose} opacity="0.92" />
+
+        {/* Keypad */}
+        <rect x="394" y="40" width="366" height="420" rx="10" fill={C.panel} stroke={C.line} />
+        {Array.from({ length: 12 }, (_, i) => {
+          const col = i % 3;
+          const row = Math.floor(i / 3);
+          return (
+            <g>
+              <rect
+                x={420 + col * 112}
+                y={68 + row * 96}
+                width="94"
+                height="78"
+                rx="8"
+                fill={C.panel2}
+                stroke={C.lineUp}
+              />
+              <rect
+                x={452 + col * 112}
+                y={100 + row * 96}
+                width="30"
+                height="6"
+                rx="3"
+                fill={C.bone}
+                opacity="0.35"
+              />
+              <rect
+                x={440 + col * 112}
+                y={116 + row * 96}
+                width={54 - (i % 4) * 8}
+                height="4"
+                rx="2"
+                fill={C.slate}
+                opacity="0.22"
+              />
+            </g>
+          );
+        })}
+      </g>
+    )
+  }
+
+  {
+    name === 'crm' && (
+      <g>
+        {/* Pipeline header */}
+        <rect x="40" y="40" width="720" height="52" rx="10" fill={C.panel} stroke={C.line} />
+        <rect x="64" y="62" width="92" height="6" rx="3" fill={C.bone} opacity="0.65" />
+        {Array.from({ length: 3 }, (_, i) => (
+          <rect x={572 + i * 62} y="58" width="48" height="16" rx="5" fill={C.panel2} stroke={C.lineUp} />
+        ))}
+
+        {/* Four pipeline columns */}
+        {[
+          [3, 88, 132, 96],
+          [2, 110, 84],
+          [4, 96, 122, 78, 104],
+          [2, 128, 92],
+        ].map((cards, col) => (
+          <g>
+            <rect x={40 + col * 186} y="112" width="168" height="348" rx="10" fill={C.panel} stroke={C.line} />
+            <rect x={62 + col * 186} y="134" width={62 - col * 6} height="5" rx="2.5" fill={C.dim} opacity="0.7" />
+            <circle cx={186 + col * 186} cy="136" r="7" fill={C.panel2} stroke={C.lineUp} />
+            {(cards.slice(1) as number[]).map((h, i, arr) => {
+              const y = 160 + arr.slice(0, i).reduce((a: number, b: number) => a + b + 12, 0);
+              const highlight = col === 2 && i === 0;
+              return (
+                <g>
+                  <rect
+                    x={60 + col * 186}
+                    y={y}
+                    width="128"
+                    height={h}
+                    rx="8"
+                    fill={C.panel2}
+                    stroke={highlight ? C.rose : C.lineUp}
+                    opacity={highlight ? 1 : 0.95}
+                  />
+                  <rect x={76 + col * 186} y={y + 18} width={82 - i * 10} height="5" rx="2.5" fill={C.bone} opacity="0.45" />
+                  <rect x={76 + col * 186} y={y + 33} width="56" height="4" rx="2" fill={C.slate} opacity="0.26" />
+                  {h > 100 && <rect x={76 + col * 186} y={y + 47} width="70" height="4" rx="2" fill={C.slate} opacity="0.18" />}
+                  <circle cx={82 + col * 186} cy={y + h - 20} r="7" fill={highlight ? C.rose : C.bone} opacity={highlight ? 0.9 : 0.16} />
+                  <rect x={98 + col * 186} y={y + h - 23} width="38" height="5" rx="2.5" fill={C.dim} opacity="0.35" />
+                </g>
+              );
+            })}
+          </g>
+        ))}
+      </g>
+    )
+  }
+
+  {
+    name === 'brand' && (
+      <g>
+        {/* Identity sheet */}
+        <rect x="40" y="40" width="720" height="420" rx="10" fill={C.panel} stroke={C.line} />
+
+        {/* Mark lockup box */}
+        <rect x="76" y="76" width="220" height="220" rx="10" fill={C.panel2} stroke={C.lineUp} />
+        <g transform="translate(150 118)">
+          <circle cx="18" cy="18" r="18" fill="none" stroke={C.bone} stroke-width="7" opacity="0.85" />
+          <path d="M18 54 h36 a18 18 0 0 1 0 36 h-36" fill="none" stroke={C.bone} stroke-width="7" opacity="0.5" />
+          <circle cx="72" cy="108" r="8" fill={C.rose} />
+        </g>
+
+        {/* Type specimen */}
+        <rect x="330" y="76" width="182" height="14" rx="4" fill={C.bone} opacity="0.85" />
+        <rect x="330" y="102" width="286" height="14" rx="4" fill={C.bone} opacity="0.55" />
+        <rect x="330" y="128" width="228" height="14" rx="4" fill={C.bone} opacity="0.3" />
+        <line x1="330" y1="166" x2="724" y2="166" stroke={C.line} />
+        {Array.from({ length: 6 }, (_, i) => (
+          <rect x="330" y={186 + i * 18} width={356 - (i % 3) * 64} height="4" rx="2" fill={C.slate} opacity="0.22" />
+        ))}
+
+        {/* Swatch row */}
+        <line x1="76" y1="332" x2="724" y2="332" stroke={C.line} />
+        {[C.bone, C.slate, C.lineUp, C.rose].map((c, i) => (
+          <g>
+            <rect x={76 + i * 168} y="358" width="140" height="62" rx="8" fill={c} opacity={c === C.rose ? 1 : 0.9} />
+            <rect x={76 + i * 168} y="432" width="54" height="4" rx="2" fill={C.dim} opacity="0.5" />
+          </g>
+        ))}
+      </g>
+    )
+  }
+
+  {
+    name === 'nonprofit' && (
+      <g>
+        {/* Campaign banner */}
+        <rect x="40" y="40" width="720" height="196" rx="10" fill={C.panel} stroke={C.line} />
+        <rect x="76" y="80" width="300" height="18" rx="5" fill={C.bone} opacity="0.85" />
+        <rect x="76" y="110" width="228" height="18" rx="5" fill={C.bone} opacity="0.5" />
+        <rect x="76" y="152" width="132" height="34" rx="8" fill={C.rose} />
+        <rect x="222" y="152" width="118" height="34" rx="8" fill="none" stroke={C.lineUp} />
+
+        {/* Supporter constellation */}
+        {Array.from({ length: 18 }, (_, i) => {
+          const col = i % 6;
+          const row = Math.floor(i / 6);
+          return (
+            <circle
+              cx={468 + col * 44}
+              cy={92 + row * 46}
+              r="16"
+              fill={C.panel2}
+              stroke={C.lineUp}
+              opacity={0.4 + ((i * 7) % 10) / 16}
+            />
+          );
+        })}
+
+        {/* Progress + programme cards */}
+        <rect x="40" y="256" width="720" height="88" rx="10" fill={C.panel} stroke={C.line} />
+        <rect x="76" y="282" width="86" height="5" rx="2.5" fill={C.dim} opacity="0.7" />
+        <rect x="76" y="302" width="648" height="10" rx="5" fill={C.panel2} stroke={C.lineUp} />
+        <rect x="76" y="302" width="452" height="10" rx="5" fill={C.rose} opacity="0.9" />
+        <rect x="646" y="278" width="78" height="12" rx="4" fill={C.bone} opacity="0.5" />
+
+        {Array.from({ length: 3 }, (_, i) => (
+          <g>
+            <rect x={40 + i * 246} y="364" width="228" height="96" rx="10" fill={C.panel} stroke={C.line} />
+            <rect x={64 + i * 246} y="390" width={116 - i * 16} height="6" rx="3" fill={C.bone} opacity="0.5" />
+            <rect x={64 + i * 246} y="410" width="164" height="4" rx="2" fill={C.slate} opacity="0.26" />
+            <rect x={64 + i * 246} y="424" width="120" height="4" rx="2" fill={C.slate} opacity="0.18" />
+          </g>
+        ))}
+      </g>
+    )
+  }
+
+  {/* Uniform tonal falloff so type sits legibly over the lower edge */}
+  <rect width="800" height="500" fill="url(#dsFade)" />
+  <defs>
+    <linearGradient id="dsFade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0.45" stop-color="var(--color-void, #0B090E)" stop-opacity="0" />
+      <stop offset="1" stop-color="var(--color-void, #0B090E)" stop-opacity="0.55" />
+    </linearGradient>
+  </defs>
+</svg>

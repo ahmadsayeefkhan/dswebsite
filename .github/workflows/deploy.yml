@@ -1,0 +1,73 @@
+# Build the site on every push to `main` and publish the static output to the
+# `deploy` branch. Hostinger (hPanel → Advanced → Git) is connected to that
+# branch and pulls it into public_html whenever GitHub pings its webhook — so
+# the server only ever receives finished files, never source or node_modules.
+
+name: Build & deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          # Web3Forms access keys are public by design (they ship in the page's
+          # HTML and can only send mail to the linked inbox). A repository
+          # variable of the same name overrides this default.
+          PUBLIC_WEB3FORMS_KEY: ${{ vars.PUBLIC_WEB3FORMS_KEY || 'e4841cda-b0f0-47c4-9bde-51c9c39dff1e' }}
+
+      - name: Check the build
+        run: |
+          test -f dist/index.html
+          test -f dist/404.html
+          test -f dist/.htaccess
+          grep -q 'data-project-form="live"' dist/index.html
+
+      # A plain fast-forward commit on top of the previous deploy (never a
+      # force-push): Hostinger updates with `git pull`, which a rewritten
+      # history would break.
+      - name: Publish dist/ to the deploy branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SHA="$(git rev-parse --short HEAD)"
+          MSG="$(git log -1 --pretty=%s)"
+          cd dist
+          git init -q
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git symbolic-ref HEAD refs/heads/deploy
+          if git fetch -q --depth=1 origin deploy; then
+            git update-ref refs/heads/deploy FETCH_HEAD
+          fi
+          git add -A
+          if git rev-parse -q --verify HEAD >/dev/null && git diff --cached --quiet HEAD; then
+            echo "Build output unchanged — nothing to deploy."
+            exit 0
+          fi
+          git commit -q -m "Deploy ${SHA}: ${MSG}"
+          git push -q origin deploy
+          echo "Published ${SHA} to the deploy branch."

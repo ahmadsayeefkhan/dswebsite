@@ -1,0 +1,372 @@
+---
+import Logo from './Logo.astro';
+import Icon from './Icon.astro';
+import { availability, sections } from '../data/site';
+
+const navItems = sections.filter((s) => s.nav);
+---
+
+<header class="nav" data-nav id="nav">
+  <div class="nav__inner">
+    <a href="#index" class="nav__brand" aria-label="Defined Solution, back to top">
+      <Logo size={26} />
+      <span class="nav__wordmark">Defined Solution</span>
+    </a>
+
+    <nav class="nav__links" aria-label="Primary">
+      {
+        navItems.map((s) => (
+          <a href={`#${s.id}`} class="nav__link">
+            <span class="nav__link-stack">
+              <span>{s.label}</span>
+              <span aria-hidden="true">{s.label}</span>
+            </span>
+          </a>
+        ))
+      }
+    </nav>
+
+    <div class="nav__right">
+      <span class="pill">
+        <span class="pill__dot" aria-hidden="true"></span>
+        {availability.status} — {availability.window}
+      </span>
+
+      {/*
+        Rendered hidden and revealed by the script below, so a reader without
+        JavaScript is never shown a control that cannot do anything. The label
+        is deliberately generic in the markup — the specific one ("Switch to
+        light theme") depends on the active theme, which is only known on the
+        client, and a stale label is worse than a neutral one.
+      */}
+      <button
+        type="button"
+        class="theme-toggle"
+        data-theme-toggle
+        aria-label="Switch colour theme"
+        hidden
+      >
+        <span class="theme-toggle__icons" aria-hidden="true">
+          <span class="theme-toggle__icon theme-toggle__icon--sun"><Icon name="sun" size={16} /></span>
+          <span class="theme-toggle__icon theme-toggle__icon--moon"><Icon name="moon" size={16} /></span>
+        </span>
+      </button>
+
+      <a href="#contact" class="btn btn--primary nav__cta" data-magnetic="0.2">
+        Start your project
+        <Icon name="arrow-up-right" size={16} class="btn__icon" />
+      </a>
+    </div>
+  </div>
+</header>
+
+<style>
+  .nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    background: transparent;
+    border-bottom: 1px solid transparent;
+    transition:
+      transform 480ms var(--ds-ease),
+      background-color 320ms var(--ds-ease),
+      border-color 320ms var(--ds-ease),
+      backdrop-filter 320ms var(--ds-ease);
+  }
+
+  /* Past the hero the bar earns its ground. */
+  .nav.is-condensed {
+    background: color-mix(in srgb, var(--color-void) 82%, transparent);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom-color: var(--color-line);
+  }
+
+  /* Hand the viewport back while the reader is moving down the page. */
+  .nav.is-hidden {
+    transform: translateY(-100%);
+  }
+
+  .nav__inner {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    height: 68px;
+    max-width: var(--container-page);
+    margin-inline: auto;
+    padding-inline: var(--ds-gutter);
+  }
+
+  .nav__brand {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    color: var(--color-bone);
+  }
+
+  /* Invisible hit area: a 44px touch target without moving the layout. */
+  .nav__brand::after {
+    content: '';
+    position: absolute;
+    inset: -9px -13px;
+  }
+
+  .nav__wordmark {
+    font-family: var(--font-display);
+    font-variation-settings: 'wdth' 112;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  .nav__links {
+    display: none;
+    gap: 4px;
+    margin-left: 12px;
+  }
+
+  /* Link hover: the label slides up and a duplicate rises behind it. Cheap,
+     transform-only, and it reads as craft rather than decoration. */
+  .nav__link {
+    position: relative;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+    white-space: nowrap;
+    color: var(--color-slate);
+    overflow: hidden;
+    transition: color var(--ds-dur-fast) var(--ds-ease);
+  }
+
+  /* Two stacked copies of the label; hover slides the pair up by exactly one
+     line, so the second copy lands where the first was. */
+  .nav__link-stack {
+    display: block;
+    height: 1.35em;
+    overflow: hidden;
+  }
+
+  .nav__link-stack > span {
+    display: block;
+    height: 1.35em;
+    line-height: 1.35em;
+    transition: transform 420ms var(--ds-ease);
+  }
+
+  .nav__link-stack > span:last-child {
+    color: var(--color-bone);
+  }
+
+  .nav__link:hover .nav__link-stack > span,
+  .nav__link:focus-visible .nav__link-stack > span {
+    transform: translateY(-1.35em);
+  }
+
+  .nav__right {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-left: auto;
+  }
+
+  .pill {
+    display: none;
+    align-items: center;
+    gap: 7px;
+    height: 30px;
+    padding-inline: 12px;
+    border: 1px solid var(--color-line-strong);
+    border-radius: 999px;
+    background: var(--color-surface-2);
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-slate);
+    white-space: nowrap;
+  }
+
+  .pill__dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 999px;
+    background: var(--color-rose);
+    animation: pulse 2.4s var(--ds-ease-in-out) infinite;
+  }
+
+  @keyframes pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.45;
+    }
+  }
+
+  /* ── Theme toggle ─────────────────────────────────────────────────────
+     Icon-only, so it carries a label rather than relying on the glyph. It
+     shows the theme it will switch *to*, which is the convention readers
+     already have from every OS and browser control that does this. */
+
+  .theme-toggle {
+    display: inline-grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 1px solid var(--color-line-strong);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface-2);
+    color: var(--color-slate);
+    cursor: pointer;
+    transition:
+      color var(--ds-dur-fast) var(--ds-ease),
+      border-color var(--ds-dur-fast) var(--ds-ease),
+      background-color var(--ds-dur-fast) var(--ds-ease);
+  }
+
+  /* Load-bearing: the display above would otherwise beat the [hidden]
+     attribute and show a dead button to a no-JS reader. */
+  .theme-toggle[hidden] {
+    display: none;
+  }
+
+  .theme-toggle:hover {
+    color: var(--color-bone);
+    border-color: var(--ds-line-hover);
+  }
+
+  .theme-toggle__icons {
+    display: grid;
+    place-items: center;
+    width: 16px;
+    height: 16px;
+  }
+
+  /* Both marks occupy the same cell and cross-fade, so the button never
+     reflows and the swap reads as one object turning over. */
+  .theme-toggle__icon {
+    grid-area: 1 / 1;
+    display: grid;
+    place-items: center;
+    transition:
+      opacity 240ms var(--ds-ease),
+      transform 240ms var(--ds-ease);
+  }
+
+  .theme-toggle__icon--moon {
+    opacity: 0;
+    transform: rotate(-70deg) scale(0.6);
+  }
+
+  :global(html[data-theme='light']) .theme-toggle__icon--sun {
+    opacity: 0;
+    transform: rotate(70deg) scale(0.6);
+  }
+
+  :global(html[data-theme='light']) .theme-toggle__icon--moon {
+    opacity: 1;
+    transform: none;
+  }
+
+  .nav__cta {
+    height: 38px;
+    padding-inline: 16px;
+    font-size: 0.8125rem;
+  }
+
+  @media (min-width: 680px) {
+    .pill {
+      display: inline-flex;
+    }
+  }
+
+  @media (min-width: 900px) {
+    .nav__links {
+      display: flex;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .nav__wordmark {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  /**
+   * Theme switch.
+   *
+   * The theme itself is already on <html> before first paint — the inline boot
+   * script in the layout does that, because doing it here would flash the dark
+   * ground at a reader who chose light. This module only owns the *control*:
+   * revealing it, labelling it, and writing the choice down.
+   */
+  const KEY = 'ds-theme';
+  const GROUND = { dark: '#0B090E', light: '#F6F4F8' };
+
+  const root = document.documentElement;
+  const btn = document.querySelector<HTMLButtonElement>('[data-theme-toggle]');
+  const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+
+  /* Private-mode Safari and "block all cookies" both throw on access, not just
+     on write, so every touch of storage is guarded. Losing the preference is
+     survivable; a thrown error that kills the toggle is not. */
+  const read = (): string | null => {
+    try {
+      return localStorage.getItem(KEY);
+    } catch {
+      return null;
+    }
+  };
+
+  const current = (): 'dark' | 'light' => (root.dataset.theme === 'light' ? 'light' : 'dark');
+
+  const apply = (theme: 'dark' | 'light') => {
+    root.dataset.theme = theme;
+    meta?.setAttribute('content', GROUND[theme]);
+    if (btn) {
+      const label = theme === 'light' ? 'Switch to dark theme' : 'Switch to light theme';
+      btn.setAttribute('aria-label', label);
+      btn.title = label;
+    }
+  };
+
+  if (btn) {
+    btn.hidden = false;
+    apply(current());
+
+    btn.addEventListener('click', () => {
+      const next = current() === 'light' ? 'dark' : 'light';
+
+      /* Colour transitions are opt-in per element, so without this the whole
+         page snaps. The class is fitted for the length of the swap and then
+         dropped — leaving a transition on every element would make ordinary
+         hovers feel syrupy. */
+      const smooth = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (smooth) root.classList.add('is-theming');
+
+      apply(next);
+      try {
+        localStorage.setItem(KEY, next);
+      } catch {
+        /* Preference is not persisted; the switch still works for this visit. */
+      }
+
+      if (smooth) window.setTimeout(() => root.classList.remove('is-theming'), 280);
+    });
+  }
+
+  /* Follow the OS, but only until the reader overrules it. */
+  matchMedia('(prefers-color-scheme: light)').addEventListener('change', (e) => {
+    const stored = read();
+    if (stored !== 'light' && stored !== 'dark') apply(e.matches ? 'light' : 'dark');
+  });
+</script>

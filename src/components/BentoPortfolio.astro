@@ -1,0 +1,508 @@
+---
+import Icon from './Icon.astro';
+import ProjectVisual from './ProjectVisual.astro';
+import { projects } from '../data/content';
+---
+
+<section class="section" id="work">
+  <div class="shell">
+    <p class="meta work__eyebrow" data-reveal="fade">
+      <span class="meta__counter">04</span>
+      <span class="meta__slash" aria-hidden="true">/</span>
+      Selected work
+    </p>
+
+    {/* Services (03) and Work (04) sit next to each other and were running the
+        same head: eyebrow, headline left, lede right, over an identical
+        6fr/5fr end-aligned grid. Two neighbours stamped from one template.
+        Work takes a different shape — the headline runs full-bleed and the
+        lede drops beneath it into a narrow right-hand column, so the section
+        opens on scale rather than on a split. */}
+    <div class="work__head">
+      <h2 class="work__headline wdth-h2" data-reveal="lines">
+        Engineered for impact, built for scale<span class="period">.</span>
+      </h2>
+      <div class="work__aside">
+        <span class="work__rule" aria-hidden="true"></span>
+        <p class="work__lead" data-reveal="fade">
+          Six systems, six different problems. An ERP that runs a factory floor, a POS that clears a
+          queue, a CRM that chases a lease — plus the brands and platforms around them. Every one is
+          still in service.
+        </p>
+      </div>
+    </div>
+
+    <div class="bento">
+      {
+        projects.map((p) => (
+          <article class:list={['tile', `tile--${p.span}`]} data-tile data-reveal="fade">
+            <div class="tile__media">
+              <div class="tile__zoom" data-tile-zoom>
+                {
+                  p.media ? (
+                    <>
+                      {/* The still is the real content: it is what loads, what
+                          prints, what a reduced-motion visitor keeps, and what
+                          shows if the loop never arrives. The video only ever
+                          layers on top of it. */}
+                      <picture>
+                        <source srcset={`/images/work/${p.media.base}.webp`} type="image/webp" />
+                        <img
+                          class="tile__img"
+                          src={`/images/work/${p.media.base}.jpg`}
+                          alt={p.media.alt}
+                          width="1600"
+                          height="900"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      </picture>
+
+                      {p.media.video && (
+                        <video
+                          class="tile__video"
+                          data-tile-video
+                          data-src={`/video/work/${p.media.base}.mp4`}
+                          poster={`/images/work/${p.media.base}.jpg`}
+                          muted
+                          loop
+                          playsinline
+                          preload="none"
+                          aria-hidden="true"
+                          tabindex="-1"
+                        />
+                      )}
+                    </>
+                  ) : (
+                    <ProjectVisual name={p.visual} class="tile__svg" />
+                  )
+                }
+              </div>
+            </div>
+
+            <div class="tile__body">
+              <div class="tile__meta">
+                <span class="tile__number">{p.number}</span>
+                <span class="tile__sector">{p.sector}</span>
+              </div>
+
+              <h3 class="tile__title">{p.name}</h3>
+              <p class="tile__desc">{p.description}</p>
+
+              <ul class="tile__tags">
+                {p.tags.map((tag) => (
+                  <li>
+                    <span class="tag">{tag}</span>
+                  </li>
+                ))}
+              </ul>
+
+              {p.liveUrl && (
+                <a class="tile__live" href={p.liveUrl} target="_blank" rel="noopener">
+                  View live site
+                  <Icon name="arrow-up-right" size={15} class="btn__icon" />
+                </a>
+              )}
+            </div>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .work__eyebrow {
+    margin-bottom: clamp(32px, 4vw, 52px);
+  }
+
+  .work__head {
+    display: grid;
+    gap: clamp(20px, 3vw, 40px);
+    margin-bottom: clamp(44px, 5vw, 72px);
+  }
+
+  /* Full-bleed: the headline is not sharing its line with anything, so it can
+     run to the container edge and size up past the shared --text-h2. */
+  .work__headline {
+    font-size: clamp(2rem, 5.6vw, 4.75rem);
+    line-height: 0.94;
+    letter-spacing: -0.035em;
+    max-width: 20ch;
+  }
+
+  .work__aside {
+    display: grid;
+    gap: 18px;
+  }
+
+  .work__rule {
+    display: block;
+    height: 1px;
+    /* Fades out rather than stopping — a hard hairline terminus is the one
+       edge treatment this page already over-uses. */
+    background: linear-gradient(90deg, var(--color-line-strong), transparent);
+  }
+
+  .work__lead {
+    font-size: var(--text-lead);
+    line-height: 1.62;
+    color: var(--color-slate);
+    max-width: 52ch;
+  }
+
+  @media (min-width: 900px) {
+    /* The lede sits under the headline in a right-hand column, against the
+       bento's right edge — a stacked head, not a split one. */
+    .work__aside {
+      grid-template-columns: minmax(0, 1fr);
+      justify-items: end;
+      margin-left: auto;
+      width: min(100%, 46ch);
+    }
+
+    .work__rule {
+      width: 100%;
+    }
+  }
+
+  /* ── Bento grid ───────────────────────────────────────────────────────── */
+
+  .bento {
+    display: grid;
+    gap: var(--ds-gap);
+    perspective: 1400px;
+  }
+
+  .tile {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background: var(--color-surface);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transform-style: preserve-3d;
+    will-change: transform;
+    transition:
+      border-color var(--ds-dur) var(--ds-ease),
+      background-color var(--ds-dur) var(--ds-ease);
+  }
+
+  .tile:hover {
+    background: var(--color-surface-2);
+    border-color: var(--color-line-strong);
+  }
+
+  /* The border glow that follows the pointer — the co.design note in the
+     brief, done as a ring rather than a blob. A 1px-inset mask leaves only
+     the border of the pseudo-element painted, so the radial light shows on
+     the edge alone; motion.ts writes --mx/--my on the tile. */
+  .tile::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: radial-gradient(
+      420px circle at var(--mx, 50%) var(--my, 50%),
+      rgb(237 237 237 / 0.6),
+      rgb(203 74 104 / 0.26) 38%,
+      transparent 72%
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 2;
+    transition: opacity var(--ds-dur-slow) var(--ds-ease);
+  }
+  .tile:hover::after {
+    opacity: 1;
+  }
+  :global(html[data-theme='light']) .tile::after {
+    background: radial-gradient(
+      420px circle at var(--mx, 50%) var(--my, 50%),
+      rgb(25 20 32 / 0.45),
+      rgb(189 61 92 / 0.26) 38%,
+      transparent 72%
+    );
+  }
+
+  /* Title and number answer the hover too, so the tile reads as one object
+     waking rather than a border lighting on its own. */
+  .tile__title {
+    transition: color var(--ds-dur) var(--ds-ease);
+  }
+  .tile:hover .tile__title {
+    color: var(--ds-bone-hi);
+  }
+  .tile__number {
+    transition: letter-spacing var(--ds-dur-slow) var(--ds-ease);
+  }
+  .tile:hover .tile__number {
+    letter-spacing: 0.22em;
+  }
+
+  /* The tile itself does not scale — only the inner wrapper does, inside
+     overflow:hidden, so the border and radius stay pin-sharp. The zoom is
+     driven by GSAP (scripts/motion.ts) so it composes with the parallax on
+     the svg instead of two CSS transitions fighting over one transform. */
+  .tile__media {
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid var(--color-line);
+    background: var(--color-void);
+    aspect-ratio: 16 / 10;
+  }
+
+  .tile__zoom {
+    width: 100%;
+    height: 100%;
+    will-change: transform;
+  }
+
+  .tile__media :global(.tile__svg) {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Still and loop are both 16:9 and both `cover`, so they crop along the same
+     axis in every tile and the fade between them never shifts the framing —
+     the loop was generated from the still, so frame 0 is all but identical to
+     it and the 600ms cross-fade reads as the image simply coming alive.
+     (Export the two at different ratios and this breaks: the taller one gets
+     cropped top-and-bottom while the wider one gets cropped left-and-right,
+     and the frame visibly jumps the moment the video appears.)
+
+     The art itself is composed with ~12% of dead margin on every side so the
+     bento's three different tile ratios never crop into anything that reads. */
+  .tile__img,
+  .tile__video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .tile__media picture {
+    display: contents;
+  }
+
+  .tile__video {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    /* Slower than --ds-dur: this is ambience arriving, not a state change. */
+    transition: opacity 600ms var(--ds-ease);
+  }
+
+  /* Set by the script only once the loop is genuinely playing, so a video
+     that stalls or is blocked never blanks the still underneath it. */
+  .tile__video.is-playing {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tile__video {
+      display: none;
+    }
+  }
+
+  .tile__body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: clamp(22px, 2.6vw, 34px);
+  }
+
+  .tile__meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .tile__number {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    color: var(--color-rose-text);
+  }
+
+  .tile__sector {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-dim);
+  }
+
+  .tile__title {
+    font-size: var(--text-h3);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: var(--color-bone);
+  }
+
+  .tile__desc {
+    margin-top: 12px;
+    max-width: 60ch;
+    font-size: var(--text-body);
+    line-height: 1.68;
+    color: var(--color-slate);
+  }
+
+  .tile__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 20px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* Requested: the live-site action glows in the brand colour on hover. A
+     single, transient, terminal mark — within the scarcity rule. */
+  .tile__live {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    align-self: flex-start;
+    margin-top: 22px;
+    height: 38px;
+    padding-inline: 16px;
+    border: 1px solid var(--color-line-strong);
+    border-radius: var(--radius-md);
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-slate);
+    transition:
+      color var(--ds-dur) var(--ds-ease),
+      border-color var(--ds-dur) var(--ds-ease),
+      box-shadow var(--ds-dur) var(--ds-ease),
+      background-color var(--ds-dur) var(--ds-ease);
+  }
+
+  .tile__live:hover {
+    color: var(--color-bone);
+    border-color: var(--color-rose);
+    background: var(--ds-rose-veil);
+    box-shadow: 0 0 0 4px rgb(203 74 104 / 0.12);
+  }
+
+  @media (min-width: 900px) {
+    .bento {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+
+    .tile--full {
+      grid-column: span 6;
+    }
+    .tile--half {
+      grid-column: span 3;
+    }
+    .tile--two-thirds {
+      grid-column: span 4;
+    }
+    .tile--third {
+      grid-column: span 2;
+    }
+
+    /* A full-width tile puts its media beside the copy rather than stacking —
+       the same component, reading as a feature. */
+    .tile--full {
+      flex-direction: row;
+      align-items: stretch;
+    }
+    .tile--full .tile__media {
+      flex: 0 0 58%;
+      aspect-ratio: auto;
+      border-bottom: 0;
+      border-right: 1px solid var(--color-line);
+    }
+    .tile--full .tile__body {
+      justify-content: center;
+      padding: clamp(28px, 3vw, 48px);
+    }
+    .tile--full .tile__title {
+      font-size: clamp(1.5rem, 2.4vw, 2.125rem);
+    }
+
+    .tile--third .tile__media,
+    .tile--two-thirds .tile__media {
+      aspect-ratio: 16 / 11;
+    }
+  }
+</style>
+
+<script>
+  /* Ambient loops, paid for only when they are actually on screen.
+     Nothing is fetched at page load — `preload="none"` plus a `data-src` that
+     only becomes a real `src` when the tile enters view. Six 5-second loops
+     would otherwise cost every visitor ~3.5 MB for artwork most of them never
+     scroll to.
+
+     The still underneath is the source of truth. We reveal the video only on
+     `playing`, and hide it again on stall or error, so a blocked autoplay or a
+     404 degrades to the poster rather than to a black rectangle. */
+
+  function initTileLoops() {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const videos = Array.from(
+      document.querySelectorAll<HTMLVideoElement>('[data-tile-video]'),
+    );
+    if (!videos.length || !('IntersectionObserver' in window)) return;
+
+    const reveal = (v: HTMLVideoElement) => v.classList.add('is-playing');
+    const conceal = (v: HTMLVideoElement) => v.classList.remove('is-playing');
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          const video = entry.target as HTMLVideoElement;
+
+          if (!entry.isIntersecting) {
+            video.pause();
+            continue;
+          }
+
+          if (!video.src) {
+            const src = video.dataset.src;
+            if (!src) continue;
+            video.src = src;
+            /* Required: under preload="none" Chrome ignores a freshly assigned
+               src until something explicitly asks for the media, and play()
+               alone does not — without this the element sits at readyState 0
+               forever and the loop silently never appears. */
+            video.load();
+            video.addEventListener('playing', () => reveal(video));
+            video.addEventListener('error', () => conceal(video), { once: true });
+          }
+
+          /* Autoplay can still be refused (Low Power Mode, a data-saver, a
+             per-site setting). That rejection is expected, not exceptional —
+             swallow it and leave the still showing. */
+          void video.play().catch(() => conceal(video));
+        }
+      },
+      { rootMargin: '200px 0px' },
+    );
+
+    videos.forEach((v) => observer.observe(v));
+  }
+
+  initTileLoops();
+  document.addEventListener('astro:after-swap', initTileLoops);
+</script>

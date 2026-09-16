@@ -1,0 +1,852 @@
+/* ============================================================================
+   Defined Solution — global stylesheet
+   Implements brand-guidelines/tokens/tokens.css against Tailwind CSS v4.
+
+   Two layers of tokens:
+     @theme  → values Tailwind should generate utilities from (bg-void, …)
+     :root   → values Tailwind has no namespace for (durations, easings, rail)
+   ========================================================================= */
+
+@import 'tailwindcss';
+
+@theme {
+  /* ── Colour ───────────────────────────────────────────────────────────── */
+  --color-void: #0b090e;
+  --color-surface: #141118;
+  --color-surface-2: #1c1822;
+  --color-surface-3: #241f2b;
+
+  --color-line: #2c2433;
+  --color-line-strong: #3a3243;
+
+  --color-bone: #ededed; /* 16.93:1 on void — AAA */
+  --color-slate: #9a93a3; /*  6.68:1 on void — AA  */
+  /* Lifted from #7E7688 when the atmosphere layer landed. The old value was
+     4.56:1 on FLAT void — no headroom at all — and the environment raises
+     the worst-case ground to L=0.018, which pushed it to 3.5:1. This clears
+     4.6:1 against that measured worst pixel and 5.9:1 on bare void.
+     It now sits closer to --color-slate in luminance, so the two tiers are
+     separated by size, weight and tracking rather than by brightness. */
+  --color-dim: #92899e; /*  4.62:1 on the lit ground — AA · do not darken */
+
+  --color-rose: #cb4a68; /* non-text only — 4.45:1 */
+  --color-rose-text: #e0798f; /* rose as text — 6.89:1 AA */
+
+  --color-paper: #f7f6f8;
+  --color-ink: #2c2433;
+
+  /* ── Type ─────────────────────────────────────────────────────────────── */
+  --font-display: 'Archivo', 'Helvetica Neue', arial, sans-serif;
+  --font-body: 'Instrument Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', menlo, monospace;
+
+  /* Sized against its column, not the viewport — guideline 02 §2.2. The
+     ceiling was lifted from 4.5rem: at 1440px+ the old headline sat visibly
+     smaller than the whitespace around it, and the hero is the one place on
+     the page that is allowed to be loud. */
+  --text-display: clamp(2.375rem, 5.9vw, 5.25rem);
+  --text-display--line-height: 0.92;
+  --text-display--letter-spacing: -0.035em;
+
+  --text-h2: clamp(2rem, 4.6vw, 4rem);
+  --text-h2--line-height: 0.98;
+  --text-h2--letter-spacing: -0.03em;
+
+  --text-h3: clamp(1.375rem, 2vw, 1.75rem);
+  --text-h3--line-height: 1.15;
+  --text-h3--letter-spacing: -0.02em;
+
+  --text-lead: clamp(1.0625rem, 1.35vw, 1.1875rem);
+  --text-lead--line-height: 1.62;
+
+  --text-body: 0.9375rem;
+  --text-body--line-height: 1.68;
+
+  --text-small: 0.8125rem;
+  --text-small--line-height: 1.55;
+
+  --text-meta: 0.6875rem;
+  --text-meta--line-height: 1;
+  --text-meta--letter-spacing: 0.16em;
+
+  --text-stat: clamp(3rem, 6vw, 4.75rem);
+  --text-stat--line-height: 0.85;
+  --text-stat--letter-spacing: -0.04em;
+
+  /* ── Radius ───────────────────────────────────────────────────────────── */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+
+  /* ── Layout ───────────────────────────────────────────────────────────── */
+  --container-page: 1280px;
+}
+
+:root {
+  --ds-gutter: clamp(20px, 5vw, 48px);
+  /* The rail tracks the container's left edge, not the viewport's, so it never
+     lands on top of the content. */
+  --ds-rail: max(20px, calc((100vw - var(--container-page)) / 2 - 26px));
+  --ds-gap: clamp(16px, 2.2vw, 32px);
+  --ds-section-y: clamp(96px, 12vw, 176px);
+  --ds-section-y-lg: clamp(120px, 15vw, 224px);
+  --ds-section-y-sm: clamp(56px, 7vw, 88px);
+
+  --ds-dur-fast: 120ms;
+  --ds-dur: 220ms;
+  --ds-dur-slow: 420ms;
+  --ds-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ds-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  --ds-rose-veil: rgb(203 74 104 / 0.14);
+  --ds-rose-glow: rgb(203 74 104 / 0.3);
+  --ds-line-soft: rgb(237 237 237 / 0.07);
+  --ds-line-hover: rgb(237 237 237 / 0.4);
+  --ds-line-hover-soft: rgb(237 237 237 / 0.28);
+
+  /* One step past bone — the brightest a hover is allowed to go. Flips to
+     near-black in light mode so "brighter on hover" stays "more contrast on
+     hover" rather than becoming "invisible on hover". */
+  --ds-bone-hi: #fff;
+
+  /* The plum washes. Ambient ground, never a glow blob — guideline 02 §5. */
+  --ds-aura: rgb(44 36 51 / 0.72);
+  --ds-aura-soft: rgb(44 36 51 / 0.5);
+
+  color-scheme: dark;
+}
+
+/* ══ Light theme ════════════════════════════════════════════════════════
+   The same design, re-grounded — not a different design.
+
+   Every rule in this file and in every component reads its colour through the
+   tokens above, so the whole site flips by redefining them here and nowhere
+   else. The *roles* are what invert, which is why --color-bone (the primary
+   text colour) becomes near-black and --color-ink (what sits on top of bone)
+   becomes near-white: a primary button is still "bone ground, ink label" in
+   both themes and needs no light-mode rule of its own.
+
+   Specificity 0,2,0 beats the 0,1,0 of the :root above and of Tailwind's
+   generated @theme vars, so this wins regardless of source order.
+
+   Contrast on the #f6f4f8 ground, matching the dark theme's ratios:
+     bone   16.8:1 AAA · slate 7.2:1 AA · dim 5.0:1 AA
+     rose-text 6.3:1 AA · rose 4.9:1 (non-text marks)              */
+
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --color-void: #f6f4f8;
+  --color-surface: #ffffff;
+  --color-surface-2: #f1eef5;
+  --color-surface-3: #e8e3ee;
+
+  --color-line: #e3ddea;
+  --color-line-strong: #c9c1d4;
+
+  --color-bone: #191420;
+  --color-slate: #554e60;
+  --color-dim: #6a6276;
+
+  /* Rose darkens a shade: the dark-theme rose is tuned to carry against near
+     black and goes weak on paper. */
+  --color-rose: #bd3d5c;
+  --color-rose-text: #a52d4b;
+
+  --color-paper: #141118;
+  --color-ink: #f7f6f8;
+
+  --ds-rose-veil: rgb(189 61 92 / 0.1);
+  --ds-rose-glow: rgb(189 61 92 / 0.22);
+  --ds-line-soft: rgb(25 20 32 / 0.08);
+  --ds-line-hover: rgb(25 20 32 / 0.34);
+  --ds-line-hover-soft: rgb(25 20 32 / 0.22);
+
+  --ds-bone-hi: #000;
+
+  /* On paper the wash is rose, not plum — a plum shadow on white reads as
+     dirt. Far lighter, because a tint on white shows at a fraction of the
+     opacity a tint on black needs. */
+  --ds-aura: rgb(203 74 104 / 0.1);
+  --ds-aura-soft: rgb(203 74 104 / 0.08);
+}
+
+/* The swap itself. Colour transitions are declared per element across this
+   codebase, so without a blanket rule the whole page changes in a single hard
+   frame. The navbar script adds this class only for the ~280ms of the switch
+   and then removes it — leaving it on would put a 200ms lag on every hover in
+   the site. Only paint properties are listed, so nothing here can trigger
+   layout. Reduced motion never gets the class in the first place. */
+
+html.is-theming,
+html.is-theming *,
+html.is-theming *::before,
+html.is-theming *::after {
+  transition:
+    background-color 200ms var(--ds-ease),
+    border-color 200ms var(--ds-ease),
+    color 200ms var(--ds-ease),
+    fill 200ms var(--ds-ease),
+    stroke 200ms var(--ds-ease) !important;
+}
+
+/* ══ Base ═══════════════════════════════════════════════════════════════ */
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: 96px;
+    background: var(--color-void);
+    /* `clip` on the root too: `hidden` on body alone still lets script scroll
+       the page sideways, and one anchor can leave it shifted for good. */
+    overflow-x: hidden;
+    overflow-x: clip;
+  }
+
+  /* Lenis drives scrolling; native smooth-scroll would fight it. The class is
+     added by the script, so a no-JS visitor keeps native anchor behaviour. */
+  html:not(.lenis) {
+    scroll-behavior: smooth;
+  }
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+  .lenis.lenis-stopped {
+    overflow: hidden;
+  }
+
+  /* The base colour lives on `html`, not `body`, so the fixed atmosphere layer
+     (Atmosphere.astro, z-index: -1) has somewhere to paint. A background on
+     `body` would sit on top of it and the environment would never be seen.
+     `body` keeps the fallback for anything that renders before the layer. */
+  body {
+    margin: 0;
+    background: transparent;
+    color: var(--color-bone);
+    font-family: var(--font-body);
+    font-size: var(--text-body);
+    line-height: 1.68;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    overflow-x: clip;
+  }
+
+  /* Hidden tabs stop paying for animation. `animation-play-state` does not
+     inherit, so the universal selector plus both pseudo-elements is the only
+     form that actually reaches nested and generated content. */
+  body.is-paused *,
+  body.is-paused *::before,
+  body.is-paused *::after {
+    animation-play-state: paused !important;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    margin: 0;
+    text-wrap: balance;
+    font-feature-settings:
+      'kern' 1,
+      'liga' 1,
+      'calt' 1;
+  }
+
+  /* The native cursor steps aside for the custom one (Cursor.astro) on fine
+     pointers only — motion.ts adds the class. Text fields keep theirs: the
+     I-beam is information, and a dot over a textarea reads as broken. */
+  html.has-cursor,
+  html.has-cursor a,
+  html.has-cursor button,
+  html.has-cursor summary,
+  html.has-cursor label {
+    cursor: none;
+  }
+  html.has-cursor input,
+  html.has-cursor textarea,
+  html.has-cursor select {
+    cursor: auto;
+  }
+
+  p {
+    margin: 0;
+    text-wrap: pretty;
+  }
+
+  img,
+  svg {
+    display: block;
+    max-width: 100%;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+    color: inherit;
+  }
+
+  /* Rose is 4.45:1 on the void but drops under the 3:1 interface-contrast floor
+     once the ring lands on a #1C1822 chip or input. The lighter rose-as-text
+     value clears it on every surface the page actually has, and the bone
+     halo underneath keeps the ring readable on the rose-tinted ones. */
+  :focus-visible {
+    outline: 2px solid var(--color-rose-text);
+    outline-offset: 2px;
+    border-radius: 3px;
+    box-shadow: 0 0 0 4px rgb(11 9 14 / 0.85);
+  }
+
+  /* Touch. Nothing in the system had a hit-target floor except `.chip`, and
+     the nav's theme toggle sat at 34px. Grow the target without moving the
+     layout: padding on inline links, a min-box on the controls. */
+  @media (pointer: coarse) {
+    .btn,
+    .nav__link,
+    .nav__cta,
+    .theme-toggle,
+    .tile__live,
+    .footer__link,
+    .faq__link,
+    .contacts__link,
+    .tick {
+      min-height: 44px;
+    }
+
+    .nav__link,
+    .footer__link,
+    .faq__link,
+    .contacts__link {
+      display: inline-flex;
+      align-items: center;
+    }
+
+    /* A bare `display: inline-flex` left-aligns a centred button label and
+       shrinks a full-width row to its text, so alignment is re-declared. */
+    .btn,
+    .nav__cta,
+    .theme-toggle,
+    .tile__live {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+
+  ::selection {
+    background: var(--ds-rose-veil);
+    color: var(--color-bone);
+  }
+
+  .tnum,
+  .stat-value {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* ══ Motion primitives ══════════════════════════════════════════════════
+   Progressive enhancement contract:
+
+   • The initial hidden states below apply ONLY under `html.js`.
+   • `.js` is set by the motion module once GSAP has actually loaded, and a
+     watchdog removes it if initialisation has not finished in time.
+   • So with JS off, JS broken, or reduced motion on, every element renders in
+     its final state and nothing is ever stranded invisible.               */
+
+@layer components {
+  /* The promotion hint lasts only until the element has arrived. Every reveal
+     runs `once: true`, so holding ~50 elements on their own compositor layers
+     for the life of the page costs memory for motion that will never run
+     again. motion.ts adds `.is-revealed` when each tween completes. */
+  .js [data-reveal]:not(.is-revealed) {
+    will-change: transform, opacity;
+  }
+
+  .js [data-reveal='fade'],
+  .js [data-reveal='stagger'] > * {
+    opacity: 0;
+    transform: translate3d(0, 22px, 0);
+  }
+
+  .js [data-reveal='clip'] {
+    clip-path: inset(0 0 100% 0);
+  }
+
+  /* Line-mask reveal: each line sits inside an overflow-hidden wrapper and
+     starts pushed below its own baseline, so it rises out of the mask. */
+  /* Archivo's descender runs to about 0.21em. The old 0.06em of room cut the
+     tails off every g, y and p in the masked headlines — "Empowering your…
+     growth", "Your digital… strategy" — the most visible craft failure on the
+     page. Pad past the descender, then pull the same amount back off the
+     margin so the mask gains tail room without moving the line. */
+  .line-mask {
+    display: block;
+    overflow: hidden;
+    padding-bottom: 0.24em;
+    margin-bottom: -0.24em;
+  }
+  .js .line-mask > span {
+    display: block;
+    transform: translate3d(0, 108%, 0);
+  }
+
+  /* GSAP SplitText writes these; give the masks the same treatment. */
+  .js .split-line {
+    overflow: hidden;
+    padding-bottom: 0.24em;
+    margin-bottom: -0.24em;
+  }
+
+  /* The headline reveal had no pre-JS resting state, so between `html.js` and
+     SplitText running the lines painted unmasked and then snapped down out of
+     view. Hold them until the split exists, and let the same failsafe that
+     strips `.js` release them if it never does. */
+  .js [data-reveal='lines'] {
+    opacity: 0;
+  }
+  .js [data-reveal='lines'].is-split {
+    opacity: 1;
+  }
+
+  /* ── Shell ──────────────────────────────────────────────────────────── */
+
+  .shell {
+    width: 100%;
+    max-width: var(--container-page);
+    margin-inline: auto;
+    padding-inline: var(--ds-gutter);
+  }
+
+  /* Vertical rhythm is owned by the section element alone — never by a child.
+     Guideline 02 §3.3. */
+  .section {
+    padding-block: var(--ds-section-y);
+    position: relative;
+  }
+  .section--lg {
+    padding-block: var(--ds-section-y-lg);
+  }
+  .section--sm {
+    padding-block: var(--ds-section-y-sm);
+  }
+
+  /* ── Metadata label ─────────────────────────────────────────────────── */
+
+  .meta {
+    font-family: var(--font-mono);
+    font-size: var(--text-meta);
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    line-height: 1;
+    text-transform: uppercase;
+    color: var(--color-dim);
+  }
+
+  .meta__counter {
+    color: var(--color-rose-text);
+  }
+
+  .meta__slash {
+    color: var(--color-line-strong);
+    margin-inline: 0.5em;
+  }
+
+  /* ── Buttons ─────────────────────────────────────────────────────────────
+     Primary is bone-on-ink at 12.75:1. Rose fails AA as a button fill and is
+     reserved for terminal marks — guideline 02 §1.4.                       */
+
+  .btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    height: 48px;
+    padding-inline: 22px;
+    border-radius: var(--radius-md);
+    border: 1px solid transparent;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    white-space: nowrap;
+    cursor: pointer;
+    isolation: isolate;
+    transition:
+      background-color var(--ds-dur-fast) var(--ds-ease),
+      border-color var(--ds-dur-fast) var(--ds-ease),
+      color var(--ds-dur-fast) var(--ds-ease);
+  }
+
+  .btn--lg {
+    height: 52px;
+    padding-inline: 28px;
+  }
+
+  .btn--primary {
+    background: var(--color-bone);
+    color: var(--color-ink);
+  }
+  .btn--primary:hover {
+    background: var(--ds-bone-hi);
+  }
+
+  /* Primary lifts a pixel on hover and drops back on press — the one
+     transform the guideline grants a button (03 §5). */
+  .btn--primary:hover {
+    translate: 0 -1px;
+  }
+  .btn--primary:active {
+    translate: 0 0;
+  }
+
+  /* Secondary fills from the left on hover: a wipe, not a fade, so the
+     button answers the pointer's direction of travel. The layer sits behind
+     the label inside the button's own isolated stacking context. */
+  .btn--secondary {
+    background: transparent;
+    border-color: var(--color-line-strong);
+    color: var(--color-bone);
+    transition:
+      border-color var(--ds-dur) var(--ds-ease),
+      color var(--ds-dur) var(--ds-ease);
+  }
+  .btn--secondary::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--color-bone);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform var(--ds-dur-slow) var(--ds-ease);
+  }
+  .btn--secondary:hover {
+    border-color: var(--color-bone);
+    color: var(--color-ink);
+  }
+  .btn--secondary:hover::before {
+    transform: scaleX(1);
+  }
+
+  .btn__icon {
+    transition: transform var(--ds-dur) var(--ds-ease);
+  }
+  .btn:hover .btn__icon {
+    transform: translate(2px, -2px);
+  }
+  .btn--secondary:hover .btn__icon {
+    transform: translateX(3px);
+  }
+
+  /* Magnetic buttons: the script writes --mx/--my, CSS applies them. Keeping
+     the transform in CSS means the hover lift and the magnet compose instead
+     of overwriting one another. */
+  .btn[data-magnetic] {
+    transform: translate3d(var(--mx, 0), var(--my, 0), 0);
+    transition:
+      transform 380ms var(--ds-ease),
+      background-color var(--ds-dur-fast) var(--ds-ease),
+      border-color var(--ds-dur) var(--ds-ease),
+      color var(--ds-dur) var(--ds-ease);
+  }
+  .btn[data-magnetic].is-magnetised {
+    transition:
+      transform 120ms linear,
+      background-color var(--ds-dur-fast) var(--ds-ease),
+      border-color var(--ds-dur) var(--ds-ease),
+      color var(--ds-dur) var(--ds-ease);
+  }
+
+  /* ── Sliding underline ────────────────────────────────────────────────
+     For quiet text links (footer, FAQ contact): a hairline that draws in
+     from the left on hover and withdraws to the right on leave, so the two
+     states never look like a toggle. */
+  .link-slide {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-repeat: no-repeat;
+    background-size: 0% 1px;
+    background-position: 100% 100%;
+    padding-bottom: 1px;
+    transition:
+      background-size var(--ds-dur-slow) var(--ds-ease),
+      color var(--ds-dur-fast) var(--ds-ease);
+  }
+  .link-slide:hover,
+  .link-slide:focus-visible {
+    background-size: 100% 1px;
+    background-position: 0% 100%;
+  }
+
+  /* ── Card ───────────────────────────────────────────────────────────── */
+
+  .card {
+    position: relative;
+    background: var(--color-surface);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-lg);
+    transition:
+      background-color var(--ds-dur) var(--ds-ease),
+      border-color var(--ds-dur) var(--ds-ease);
+  }
+
+  /* ── Form controls ──────────────────────────────────────────────────── */
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .input {
+    width: 100%;
+    height: 48px;
+    padding-inline: 14px;
+    background: var(--color-surface-2);
+    border: 1px solid var(--color-line-strong);
+    border-radius: var(--radius-md);
+    color: var(--color-bone);
+    font-size: 0.875rem;
+    transition:
+      border-color var(--ds-dur-fast) var(--ds-ease),
+      box-shadow var(--ds-dur-fast) var(--ds-ease);
+  }
+
+  textarea.input {
+    height: auto;
+    min-height: 132px;
+    padding-block: 12px;
+    resize: vertical;
+    line-height: 1.6;
+  }
+
+  select.input {
+    appearance: none;
+    padding-right: 40px;
+    cursor: pointer;
+  }
+
+  .input::placeholder {
+    color: var(--color-dim);
+  }
+
+  .input:focus {
+    outline: none;
+    border-color: var(--color-rose);
+    box-shadow: 0 0 0 3px var(--ds-rose-glow);
+  }
+
+  .input:focus-visible {
+    outline: none;
+  }
+
+  .field__label {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-dim);
+    padding: 0;
+  }
+
+  /* ── Service chip ─────────────────────────────────────────────────────
+     A <label> wrapping a real checkbox: keyboard-operable, submits without
+     JavaScript, and colour is never the only state carrier — the dot and the
+     border change too. Guideline 02 §6.2, §9.                             */
+
+  .chip {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 4px 14px;
+    background: var(--color-surface-2);
+    border: 1px solid var(--color-line-strong);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-slate);
+    cursor: pointer;
+    user-select: none;
+    transition:
+      background-color var(--ds-dur) var(--ds-ease),
+      border-color var(--ds-dur) var(--ds-ease),
+      box-shadow var(--ds-dur) var(--ds-ease),
+      color var(--ds-dur) var(--ds-ease);
+  }
+
+  .chip:hover {
+    border-color: var(--ds-line-hover-soft);
+    color: var(--color-bone);
+  }
+
+  .chip__dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 999px;
+    background: var(--color-rose);
+    transform: scale(0);
+    transition: transform var(--ds-dur) var(--ds-ease);
+  }
+
+  .chip input {
+    position: absolute;
+    opacity: 0;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    cursor: pointer;
+  }
+
+  .chip:has(input:checked) {
+    background: var(--ds-rose-veil);
+    border-color: var(--color-rose);
+    color: var(--color-bone);
+    box-shadow: 0 0 0 3px var(--ds-rose-veil);
+  }
+
+  .chip:has(input:checked) .chip__dot {
+    transform: scale(1);
+  }
+
+  .chip:has(input:focus-visible) {
+    outline: 2px solid var(--color-rose);
+    outline-offset: 2px;
+  }
+
+  /* ── Tag ────────────────────────────────────────────────────────────── */
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    height: 24px;
+    padding-inline: 9px;
+    border: 1px solid var(--color-line-strong);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-dim);
+    white-space: nowrap;
+  }
+}
+
+/* ══ Utilities ══════════════════════════════════════════════════════════ */
+
+@layer utilities {
+  .wdth-display {
+    font-variation-settings: 'wdth' 118;
+  }
+  .wdth-h2 {
+    font-variation-settings: 'wdth' 112;
+  }
+
+  .measure-display {
+    max-width: 18ch;
+  }
+  .measure-h2 {
+    max-width: 22ch;
+  }
+  .measure-lead {
+    max-width: 54ch;
+  }
+  .measure-body {
+    max-width: 68ch;
+  }
+  .measure-card {
+    max-width: 42ch;
+  }
+
+  /* The terminal period. The mark, inline in the type. */
+  .period {
+    color: var(--color-rose);
+  }
+
+  .edge-fade {
+    --fade: clamp(32px, 8vw, 120px);
+    -webkit-mask-image: linear-gradient(
+      90deg,
+      transparent,
+      #000 var(--fade),
+      #000 calc(100% - var(--fade)),
+      transparent
+    );
+    mask-image: linear-gradient(
+      90deg,
+      transparent,
+      #000 var(--fade),
+      #000 calc(100% - var(--fade)),
+      transparent
+    );
+  }
+}
+
+/* ══ Reduced motion ═════════════════════════════════════════════════════
+   Guideline 03 §7. The page must stay fully comprehensible with zero moving
+   pixels — and, critically, nothing may stay hidden. The motion module also
+   bails out early, so no reveal is ever left in its "before" state.       */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Force every reveal to its final state. */
+  .js [data-reveal],
+  .js [data-reveal='stagger'] > *,
+  .js .line-mask > span,
+  .js .split-line > * {
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: none !important;
+  }
+
+  /* The marquee becomes a scrollable region so the full stack stays reachable
+     by drag, wheel or keyboard.
+     !important is load-bearing: Astro's scoped `.lane[data-astro-cid-…]`
+     carries higher specificity than this global class, and without it the
+     component's `overflow: hidden` wins and the fallback silently does
+     nothing — a stopped marquee with no way to read the rest. */
+  .lane {
+    overflow-x: auto !important;
+    -webkit-mask-image: none !important;
+    mask-image: none !important;
+  }
+
+  .rail__dot {
+    display: none;
+  }
+}

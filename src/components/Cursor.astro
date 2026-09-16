@@ -1,0 +1,128 @@
+---
+/**
+ * Custom cursor.
+ *
+ * A 6px bone dot rides the pointer exactly; a 34px ring follows it with a
+ * little lag (motion.ts → initCursor). Over anything interactive the ring
+ * grows; over an element carrying `data-cursor-label` it also carries a word.
+ * The ring uses `mix-blend-mode: difference`, so the same bone colour reads on
+ * both themes and over any picture.
+ *
+ * Fine pointers only. On touch this element is never shown and the class that
+ * hides the native cursor is never added. Form fields keep the native cursor
+ * in every case (global.css) — an I-beam over a text field is information.
+ *
+ * Purely presentational: hidden from the tree, no pointer events.
+ */
+---
+
+<div class="cursor" data-cursor aria-hidden="true">
+  <span class="cursor__dot" data-cursor-dot></span>
+  <span class="cursor__ring" data-cursor-ring>
+    <span class="cursor__label" data-cursor-label></span>
+  </span>
+</div>
+
+<style>
+  .cursor {
+    position: fixed;
+    inset: 0;
+    z-index: 500;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 240ms var(--ds-ease);
+  }
+
+  .cursor.is-visible {
+    opacity: 1;
+  }
+
+  .cursor__dot,
+  .cursor__ring {
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-radius: 999px;
+    will-change: transform;
+  }
+
+  .cursor__dot {
+    width: 6px;
+    height: 6px;
+    margin: -3px 0 0 -3px;
+    background: var(--color-rose);
+    transition: transform var(--ds-dur) var(--ds-ease);
+  }
+
+  .cursor__ring {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    margin: -17px 0 0 -17px;
+    border: 1px solid rgb(237 237 237 / 0.75);
+    mix-blend-mode: difference;
+    transition:
+      width 320ms var(--ds-ease),
+      height 320ms var(--ds-ease),
+      margin 320ms var(--ds-ease),
+      border-color 320ms var(--ds-ease),
+      background-color 320ms var(--ds-ease);
+  }
+
+  .cursor.is-hover .cursor__ring {
+    width: 56px;
+    height: 56px;
+    margin: -28px 0 0 -28px;
+    border-color: rgb(237 237 237 / 0.4);
+    background: rgb(237 237 237 / 0.08);
+  }
+
+  .cursor.is-hover .cursor__dot {
+    transform: scale(0.6);
+  }
+
+  .cursor.is-down .cursor__ring {
+    width: 26px;
+    height: 26px;
+    margin: -13px 0 0 -13px;
+  }
+
+  .cursor.has-label .cursor__ring {
+    width: 84px;
+    height: 84px;
+    margin: -42px 0 0 -42px;
+    background: rgb(237 237 237 / 0.92);
+    border-color: transparent;
+  }
+
+  .cursor.has-label .cursor__dot {
+    transform: scale(0);
+  }
+
+  .cursor__label {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #000;
+    opacity: 0;
+    transform: translateY(4px);
+    transition:
+      opacity 240ms var(--ds-ease),
+      transform 240ms var(--ds-ease);
+  }
+
+  .cursor.has-label .cursor__label {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Never on touch, never under reduced motion. */
+  @media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) {
+    .cursor {
+      display: none;
+    }
+  }
+</style>

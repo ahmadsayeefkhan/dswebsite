@@ -1,0 +1,365 @@
+---
+/**
+ * Services — horizontal scroll.
+ *
+ * Requested: "these cards will scroll horizontally". On desktop the section
+ * pins and the track translates sideways as the reader scrolls down, driven by
+ * ScrollTrigger with `containerAnimation` so each card can own an entrance
+ * trigger measured against the horizontal tween.
+ *
+ * Below 1024px it is a native scroll-snap carousel instead. Pinning on a phone
+ * fights the platform's own scrolling and reads as lag, so the same markup
+ * degrades rather than being reproduced badly.
+ *
+ * Deliverables stay visible at every width rather than hiding behind hover:
+ * the cards contain nothing focusable, so a keyboard user could never open
+ * them, there is no hover on touch, and personas A and B are scanning
+ * specifically for these lists (guideline 01 §2). Hover is emphasis, not
+ * disclosure.
+ */
+import Icon from './Icon.astro';
+import { services } from '../data/content';
+---
+
+<section class="hs" id="services" data-hscroll>
+  <div class="hs__inner">
+    <div class="shell hs__head">
+      <p class="meta" data-reveal="fade">
+        <span class="meta__counter">03</span>
+        <span class="meta__slash" aria-hidden="true">/</span>
+        Services
+      </p>
+
+      <div class="hs__head-grid">
+        <h2 class="hs__headline wdth-h2" data-reveal="lines">
+          Comprehensive capabilities, specialised execution<span class="period">.</span>
+        </h2>
+        <p class="hs__lead measure-lead" data-reveal="fade">
+          We do not just build deliverables — we engineer complete digital ecosystems. From the
+          first line of code to a global launch, this is how we accelerate your growth.
+        </p>
+      </div>
+
+      <div class="hs__meter" aria-hidden="true">
+        <span class="hs__meter-fill" data-hscroll-progress></span>
+      </div>
+    </div>
+
+    <div class="hs__viewport">
+      <div class="hs__track" data-hscroll-track>
+        {
+          services.map((s) => (
+            <article class="scard" data-hcard>
+              <div class="scard__top">
+                <span class="scard__number">{s.number}</span>
+                <span class="scard__icon">
+                  <Icon name={s.icon} size={20} />
+                </span>
+              </div>
+
+              <p class="scard__kicker">{s.kicker}</p>
+              <h3 class="scard__title">{s.title}</h3>
+              <p class="scard__body">{s.body}</p>
+
+              <ul class="scard__list">
+                {s.deliverables.map((d) => (
+                  <li class="scard__item">
+                    <Icon name="check" size={13} class="scard__check" />
+                    {d}
+                  </li>
+                ))}
+              </ul>
+            </article>
+          ))
+        }
+
+        <article class="scard scard--cta" data-hcard>
+          <h3 class="scard__title">Not sure which you need<span class="period">?</span></h3>
+          <p class="scard__body">
+            Most projects touch two or three of these. Tell us the problem and we will map it to
+            the work — free consultation, no obligation.
+          </p>
+          <a href="#contact" class="btn btn--primary" data-magnetic="0.24">
+            Book a free consultation
+            <Icon name="arrow-up-right" size={16} class="btn__icon" />
+          </a>
+        </article>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hs {
+    position: relative;
+    padding-block: var(--ds-section-y);
+    overflow: clip;
+  }
+
+  .hs__head {
+    margin-bottom: clamp(32px, 4vw, 48px);
+  }
+
+  .hs__head-grid {
+    display: grid;
+    gap: clamp(18px, 2.4vw, 44px);
+    margin-top: clamp(22px, 2.4vw, 30px);
+  }
+
+  /* Deliberately smaller than the page's h2 scale: this section is pinned, so
+     its whole height has to fit one viewport. Every line the headline gains is
+     a line the cards lose. */
+  .hs__headline {
+    font-size: clamp(1.75rem, 3.4vw, 2.85rem);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    max-width: 24ch;
+  }
+
+  .hs__lead {
+    font-size: var(--text-lead);
+    line-height: 1.62;
+    color: var(--color-slate);
+  }
+
+  /* Progress meter — the horizontal position made legible. Without it a pinned
+     section reads as the page having stopped responding. */
+  .hs__meter {
+    position: relative;
+    height: 1px;
+    margin-top: clamp(22px, 2.6vw, 32px);
+    background: var(--color-line);
+    overflow: hidden;
+  }
+
+  .hs__meter-fill {
+    position: absolute;
+    inset: 0;
+    background: var(--color-rose);
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+
+  .hs__viewport {
+    overflow: visible;
+  }
+
+  .hs__track {
+    display: flex;
+    gap: var(--ds-gap);
+    padding-inline: var(--ds-gutter);
+    will-change: transform;
+  }
+
+  /* ── Card ─────────────────────────────────────────────────────────────── */
+
+  .scard {
+    flex: 0 0 auto;
+    width: min(88vw, 400px);
+    display: flex;
+    flex-direction: column;
+    padding: clamp(24px, 2.4vw, 32px);
+    background: var(--color-surface);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-lg);
+    transition:
+      background-color var(--ds-dur) var(--ds-ease),
+      border-color var(--ds-dur) var(--ds-ease);
+  }
+
+  .scard:hover {
+    background: var(--color-surface-2);
+    border-color: var(--color-line-strong);
+  }
+
+  .scard__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .scard__number {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    color: var(--color-rose-text);
+  }
+
+  .scard__icon {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--color-line-strong);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface-2);
+    color: var(--color-slate);
+    transition: color var(--ds-dur) var(--ds-ease);
+  }
+
+  .scard:hover .scard__icon {
+    color: var(--color-bone);
+  }
+
+  .scard__kicker {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-dim);
+    margin-bottom: 10px;
+  }
+
+  .scard__title {
+    font-size: var(--text-h3);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: var(--color-bone);
+  }
+
+  .scard__body {
+    margin-top: 12px;
+    font-size: var(--text-body);
+    line-height: 1.68;
+    color: var(--color-slate);
+  }
+
+  .scard__list {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    margin: auto 0 0;
+    padding: 18px 0 0;
+    list-style: none;
+  }
+
+  .scard__list::before {
+    content: '';
+    display: block;
+    height: 1px;
+    margin-bottom: 15px;
+    background: var(--color-line);
+  }
+
+  .scard__item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    line-height: 1.35;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--color-dim);
+    transition: color var(--ds-dur) var(--ds-ease);
+  }
+
+  .scard:hover .scard__item {
+    color: var(--color-slate);
+  }
+
+  /* :global() — the check is a child component's root <svg>, outside this
+     component's style scope. */
+  .scard__item :global(.scard__check) {
+    flex-shrink: 0;
+    color: var(--color-line-strong);
+    transition: color var(--ds-dur) var(--ds-ease);
+  }
+
+  .scard:hover .scard__item :global(.scard__check) {
+    color: var(--color-rose);
+  }
+
+  /* ── Closing card ─────────────────────────────────────────────────────── */
+
+  .scard--cta {
+    justify-content: center;
+    gap: 18px;
+    width: min(80vw, 330px);
+    background: var(--color-surface-2);
+    border-color: var(--color-line-strong);
+  }
+
+  .scard--cta .btn {
+    align-self: flex-start;
+  }
+
+  /* ── Mobile: native snap carousel ─────────────────────────────────────── */
+
+  @media (max-width: 1023px) {
+    .hs__viewport {
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+      /* Bleed to the viewport edge so the carousel reads as scrollable. */
+      margin-inline: calc(var(--ds-gutter) * -1);
+    }
+    .hs__viewport::-webkit-scrollbar {
+      display: none;
+    }
+    .scard {
+      scroll-snap-align: center;
+    }
+    .hs__track {
+      padding-inline: var(--ds-gutter);
+    }
+  }
+
+  /* Set by the engine when the track already fits the viewport: no pin, so
+     the meter would be a bar that never fills. */
+  .hs.is-static .hs__meter {
+    display: none;
+  }
+  .hs.is-static .hs__track {
+    justify-content: center;
+    flex-wrap: wrap;
+    row-gap: var(--ds-gap);
+  }
+
+  @media (min-width: 1024px) {
+    .hs {
+      padding-block: 0;
+    }
+
+    /* The pinned section owns exactly one viewport. Laying it out as a centred
+       flex column means it can never be taller than the pin, so the bottom of
+       the last card can never be clipped on a short laptop screen. */
+    .hs__inner {
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding-block: clamp(48px, 7vh, 100px);
+    }
+
+    .hs.is-static .hs__inner {
+      min-height: 0;
+    }
+    .hs__head-grid {
+      grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+      align-items: end;
+    }
+    .scard {
+      width: 452px;
+    }
+    .scard--cta {
+      width: 348px;
+    }
+
+    /* Two columns for the deliverables. The longest list is seven items; in a
+       single column that alone is 200px and it pushes the pinned section past
+       a short laptop viewport. Two columns keeps every item visible and the
+       whole section inside one screen. */
+    .scard__list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px 18px;
+    }
+    .scard__list::before {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

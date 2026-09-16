@@ -1,0 +1,228 @@
+---
+/**
+ * FAQ accordion.
+ *
+ * Native <details>/<summary>: keyboard-operable, findable by in-page search,
+ * and fully working with JavaScript disabled. Height animates via
+ * grid-template-rows 0fr → 1fr, so there is no JS measurement and no layout
+ * shift. `min-height: 0` on the inner element is required or the row refuses
+ * to collapse. Guideline 03 §5.
+ */
+import Icon from './Icon.astro';
+import { contact } from '../data/site';
+import { faqs } from '../data/content';
+---
+
+<section class="section faq-section" id="questions">
+  <div class="shell">
+    <p class="meta faq__eyebrow" data-reveal="fade">
+      <span class="meta__counter">05</span>
+      <span class="meta__slash" aria-hidden="true">/</span>
+      Questions
+    </p>
+
+    <div class="faq__grid">
+      <div class="faq__intro">
+        <h2 class="faq__headline wdth-h2" data-reveal="lines">
+          Got questions? We are here to help<span class="period">.</span>
+        </h2>
+        <p class="faq__lead" data-reveal="fade">
+          We keep things simple and transparent. Here is what most people ask before getting
+          started.
+        </p>
+        <p class="faq__contact" data-reveal="fade">
+          Still stuck?
+          <a href={`mailto:${contact.email}`} class="faq__link link-slide">{contact.email}</a>
+        </p>
+      </div>
+
+      <div class="faq__list" data-reveal="stagger">
+        {
+          faqs.map((item, i) => (
+            <details class="faq" name="faq">
+              <summary class="faq__summary">
+                <span class="faq__number">{String(i + 1).padStart(2, '0')}</span>
+                <span class="faq__q">{item.q}</span>
+                <span class="faq__icon" aria-hidden="true">
+                  <Icon name="plus" size={16} />
+                </span>
+              </summary>
+              <div class="faq__body">
+                <div class="faq__inner">
+                  <p class="faq__a">{item.a}</p>
+                </div>
+              </div>
+            </details>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* The same fading hairline the services section opens with, so the joins
+     between the argument's parts share one treatment. */
+  .faq-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: min(100%, var(--container-page));
+    height: 1px;
+    transform: translateX(-50%);
+    background: linear-gradient(90deg, transparent, var(--color-line-strong) 50%, transparent);
+    pointer-events: none;
+  }
+
+  .faq__eyebrow {
+    margin-bottom: clamp(32px, 4vw, 52px);
+  }
+
+  .faq__grid {
+    display: grid;
+    gap: clamp(36px, 5vw, 72px);
+    align-items: start;
+  }
+
+  .faq__headline {
+    font-size: var(--text-h2);
+    line-height: 0.98;
+    letter-spacing: -0.03em;
+    max-width: 14ch;
+  }
+
+  .faq__lead {
+    margin-top: 20px;
+    max-width: 40ch;
+    font-size: var(--text-body);
+    line-height: 1.68;
+    color: var(--color-slate);
+  }
+
+  .faq__contact {
+    margin-top: 24px;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-dim);
+  }
+
+  .faq__link {
+    color: var(--color-rose-text);
+  }
+
+  /* ── Rows ─────────────────────────────────────────────────────────────── */
+
+  .faq__list {
+    border-top: 1px solid var(--color-line);
+  }
+
+  .faq {
+    border-bottom: 1px solid var(--color-line);
+  }
+
+  .faq__summary {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: start;
+    gap: 16px;
+    padding-block: 22px;
+    cursor: pointer;
+    list-style: none;
+    transition: color var(--ds-dur-fast) var(--ds-ease);
+  }
+
+  .faq__summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq__summary:hover .faq__q {
+    color: var(--ds-bone-hi);
+  }
+
+  .faq__number {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    color: var(--color-line-strong);
+    padding-top: 5px;
+    transition: color var(--ds-dur) var(--ds-ease);
+  }
+
+  .faq[open] .faq__number {
+    color: var(--color-rose-text);
+  }
+
+  .faq__q {
+    font-family: var(--font-display);
+    font-variation-settings: 'wdth' 106;
+    font-size: 1.0625rem;
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: -0.015em;
+    color: var(--color-bone);
+    text-wrap: pretty;
+    transition: color var(--ds-dur-fast) var(--ds-ease);
+  }
+
+  .faq__icon {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    border: 1px solid var(--color-line-strong);
+    border-radius: var(--radius-sm);
+    color: var(--color-slate);
+    transition:
+      transform var(--ds-dur-slow) var(--ds-ease-in-out),
+      border-color var(--ds-dur) var(--ds-ease),
+      color var(--ds-dur) var(--ds-ease);
+  }
+
+  .faq[open] .faq__icon {
+    transform: rotate(135deg);
+    border-color: var(--color-rose);
+    color: var(--color-rose-text);
+  }
+
+  /* Height without measurement, and without layout shift. */
+  .faq__body {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows var(--ds-dur-slow) var(--ds-ease-in-out);
+  }
+
+  .faq[open] .faq__body {
+    grid-template-rows: 1fr;
+  }
+
+  .faq__inner {
+    overflow: hidden;
+    min-height: 0; /* required, or the row will not collapse */
+  }
+
+  .faq__a {
+    max-width: 62ch;
+    padding: 0 44px 26px 38px;
+    font-size: var(--text-body);
+    line-height: 1.72;
+    color: var(--color-slate);
+  }
+
+  @media (min-width: 900px) {
+    .faq__grid {
+      grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
+    }
+  }
+
+  @media (max-width: 560px) {
+    .faq__a {
+      padding-left: 0;
+      padding-right: 0;
+    }
+  }
+</style>

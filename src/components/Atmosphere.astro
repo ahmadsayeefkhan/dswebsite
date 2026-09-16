@@ -1,0 +1,236 @@
+---
+/**
+ * Defined Solution — the environment.
+ *
+ * A single fixed layer behind everything, so scrolling feels like moving
+ * THROUGH somewhere rather than past a stack of panels.
+ *
+ * ── The journey ────────────────────────────────────────────────────────────
+ * The background is one continuous camera descent through an unlit plum
+ * volume, and SCROLL POSITION IS ITS PLAYHEAD: the top of the document is the
+ * first frame, the bottom is the last. It is built from four generated plates
+ * — stations along that descent, art-directed as one move — which the page
+ * cross-dissolves through while panning and pushing in continuously.
+ *
+ *   plate 0  hero        the grid recedes flat, a cool bloom upper-left,
+ *                        the rose ember barely a pixel. Emptiest, stillest.
+ *   plate 1  studio      the grid begins to tilt and drop, haze thickens.
+ *   plate 2  work        the grid is low and angled, haze dense across the
+ *                        bottom, the bloom nearly gone. Deepest point.
+ *   plate 3  contact     warmth arrives: the ember has widened into the haze.
+ *                        The accent reaches the page exactly at the ask.
+ *
+ * Why plates and not a video. Scrubbing a <video> means writing `currentTime`,
+ * and a browser only seeks cleanly to a keyframe — with a stock encode that is
+ * one every couple of seconds, so each seek decodes dozens of frames and the
+ * scrub visibly stutters. The fix is a re-encode at `-g 8`, which needs ffmpeg,
+ * which is not available here. Cross-dissolving stills has no seek cost at all:
+ * every value below is a continuous function of scroll progress, composited on
+ * the GPU, so the motion cannot stutter by construction — and the whole
+ * journey weighs less than a single second of that video would have.
+ *
+ * ── The layers ─────────────────────────────────────────────────────────────
+ *   plate   takes the scroll pan and push-in (JS writes --py / --ps)
+ *   stack   holds the four plates and the master opacity, and carries a slow
+ *           ambient drift so the page is not dead when nobody is scrolling
+ *   glow    the one travelling light, warming toward rose near the end
+ *   grain   real film grain, above the content — on a near-black ground this
+ *           is the single largest perceived-quality change available
+ *
+ * ── The constraint that sets every number here ──────────────────────────────
+ * `--color-dim` clears its 4.5:1 floor only while the brightest pixel this
+ * stack can paint stays near L=0.018. The plates are tone-mapped to a measured
+ * ceiling and the master opacity is part of that budget. Raising either puts
+ * the site's small mono labels out of compliance.
+ *
+ * Every layer is inert: fixed, aria-hidden, pointer-events:none, and paused
+ * wholesale by `body.is-paused` when the tab is hidden.
+ */
+
+const PLATES = ['field', 'journey-1', 'journey-2', 'journey-3'];
+---
+
+<div class="atmos" data-atmos aria-hidden="true">
+  <div class="atmos__plate" data-atmos-plate>
+    <div class="atmos__stack">
+      {
+        PLATES.map((name, i) => (
+          <div
+            class="atmos__frame"
+            data-atmos-frame={i}
+            style={`background-image:url('/images/env/${name}.webp')`}
+          />
+        ))
+      }
+    </div>
+  </div>
+  <div class="atmos__glow" data-atmos-glow></div>
+</div>
+
+<div class="grain" aria-hidden="true"></div>
+
+<style>
+  /* The stack sits behind body content. `html` carries the base colour and
+     `body` is transparent (global.css), so a negative z-index lands between
+     the two rather than disappearing behind the body fill. */
+  .atmos {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    overflow: hidden;
+    contain: strict;
+  }
+
+  /* Scroll owns this transform. The pan is what makes the background travel
+     with the page; the push-in is what makes it read as a descent rather than
+     a slide. Both are continuous functions of scroll progress, so there is
+     nothing here that can step or snap. */
+  .atmos__plate {
+    position: absolute;
+    inset: 0;
+    --py: -5%;
+    --ps: 1.02;
+    transform: translate3d(0, var(--py), 0) scale(var(--ps));
+    will-change: transform;
+  }
+
+  /* Oversized so neither the drift nor the pan walks an edge into frame.
+     The ambient drift lives here rather than on .atmos__plate because a CSS
+     animation and a JS write on one element's `transform` overwrite each
+     other and the loser silently never runs. */
+  .atmos__stack {
+    position: absolute;
+    inset: -16% -10%;
+    opacity: 0.58;
+    will-change: transform;
+    animation: atmos-drift 150s var(--ds-ease-in-out) infinite alternate;
+  }
+
+  .atmos__frame {
+    position: absolute;
+    inset: 0;
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+  }
+
+  /* Plate 0 is the floor of the stack and never fades; each later plate fades
+     in over its own third on top of a fully opaque result, which makes every
+     dissolve a clean two-way lerp. Fade them all against a transparent ground
+     instead and the composite dips in brightness mid-transition. */
+  .atmos__frame[data-atmos-frame='0'] {
+    opacity: 1;
+  }
+  .atmos__frame[data-atmos-frame='1'],
+  .atmos__frame[data-atmos-frame='2'],
+  .atmos__frame[data-atmos-frame='3'] {
+    opacity: 0;
+  }
+
+  @keyframes atmos-drift {
+    from {
+      transform: translate3d(-1.2%, -0.8%, 0) scale(1.03);
+    }
+    to {
+      transform: translate3d(1.4%, 1.1%, 0) scale(1.07);
+    }
+  }
+
+  /* Two washes on one element: the travelling plum body, and a rose core that
+     only earns its opacity near the end of the document (--gr, written by
+     motion.ts). Positions come in as --gx/--gy. Body and accent are tokens so
+     light mode can swap the tint rather than just fade it. */
+  .atmos__glow {
+    position: absolute;
+    inset: -20%;
+    --gx: 22%;
+    --gy: 6%;
+    --gr: 0;
+    --gi: 1;
+    /* These alphas are a budget allocation, not a taste call. The whole stack
+       has to stay under a measured luminance ceiling or the site's small mono
+       labels drop below 4.5:1 — and at 0.30 this wash alone was eating over
+       half of it, which forced the four plates to be graded down to almost
+       nothing. The plates ARE the journey; the wash only lights it. So the
+       wash gives most of its share back and the plates get regraded to spend
+       it. Raise these and the plates have to go dark again. */
+    --g-body: 58 47 68;
+    --g-body-a: 0.15;
+    --g-accent: 203 74 104;
+    --g-accent-a: 0.06;
+    background:
+      radial-gradient(
+        42% 34% at var(--gx) var(--gy),
+        rgb(var(--g-accent) / calc(var(--g-accent-a) * var(--gr) * var(--gi))) 0%,
+        transparent 70%
+      ),
+      radial-gradient(
+        68% 52% at var(--gx) var(--gy),
+        rgb(var(--g-body) / calc(var(--g-body-a) * var(--gi))) 0%,
+        transparent 74%
+      );
+  }
+
+  /* Grain rides ABOVE the content — film grain is in the print, not behind it.
+     2.6% over a 128px tile is under the threshold where type starts to look
+     noisy, and above the threshold where the ground stops looking flat. It
+     also does real work here: it dithers the plates' dissolves, so the very
+     shallow gradients cannot band as they cross-fade. */
+  .grain {
+    position: fixed;
+    inset: 0;
+    z-index: 400;
+    pointer-events: none;
+    opacity: 0.026;
+    background-image: url('/images/env/grain.png');
+    background-size: 128px 128px;
+    background-repeat: repeat;
+  }
+
+  /* Light mode inverts the premise. The plates are photographs of darkness, so
+     laying them over paper at any opacity reads as a dirty smudge rather than
+     as atmosphere — they are dropped outright, not faded. The wash goes rose,
+     which is the same call global.css already makes for --ds-aura: a plum
+     shadow on white looks like grime, a warm one looks like light. What
+     carries the texture here is the grain, which is what paper stock does. */
+  :global(html[data-theme='light']) .atmos__stack {
+    opacity: 0;
+  }
+  :global(html[data-theme='light']) .atmos__glow {
+    --g-body: 203 74 104;
+    --g-body-a: 0.05;
+    --g-accent: 189 61 92;
+    --g-accent-a: 0.05;
+  }
+  :global(html[data-theme='light']) .grain {
+    opacity: 0.038;
+  }
+
+  /* Phones hold the opening plate and skip the journey: the later plates are
+     bytes a phone never benefits from, and the pan is the most expensive
+     compositing on the page for the least visible gain on a 6" screen. */
+  @media (pointer: coarse) {
+    .atmos__stack {
+      animation: none;
+      opacity: 0.4;
+    }
+    .atmos__plate {
+      transform: none;
+    }
+    .atmos__frame[data-atmos-frame='1'],
+    .atmos__frame[data-atmos-frame='2'],
+    .atmos__frame[data-atmos-frame='3'] {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .atmos__stack {
+      animation: none;
+    }
+    .atmos__plate {
+      transform: none;
+    }
+  }
+</style>

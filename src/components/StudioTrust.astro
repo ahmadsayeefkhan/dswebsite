@@ -1,0 +1,237 @@
+---
+import { contact, proprietor, stats } from '../data/site';
+import { studio } from '../data/content';
+---
+
+<section class="section" id="studio">
+  <div class="shell">
+    <p class="meta studio__eyebrow" data-reveal="fade">
+      <span class="meta__counter">02</span>
+      <span class="meta__slash" aria-hidden="true">/</span>
+      Studio
+    </p>
+
+    <div class="studio__grid">
+      <figure class="studio__figure">
+        <div class="portrait" data-reveal="clip">
+          <picture>
+            <source srcset={`${proprietor.portrait}.webp`} type="image/webp" />
+            <img
+              src={`${proprietor.portrait}.jpg`}
+              alt={`${proprietor.name}, ${proprietor.role} of Defined Solution`}
+              width="1000"
+              height="1250"
+              loading="lazy"
+              decoding="async"
+              data-parallax="0.05"
+            />
+          </picture>
+        </div>
+        <figcaption class="portrait__caption" data-reveal="fade">
+          <span class="portrait__name">{proprietor.name}</span>
+          <span class="portrait__role">{proprietor.role}</span>
+        </figcaption>
+      </figure>
+
+      <div class="studio__body">
+        <h2 class="studio__headline wdth-h2 measure-h2" data-reveal="lines">
+          {studio.headline}<span class="period">.</span>
+        </h2>
+
+        <p class="studio__lead measure-lead" data-reveal="fade">{studio.lead}</p>
+
+        <div class="why" data-reveal="fade">
+          <p class="why__heading meta">{studio.whyHeading}</p>
+          <p class="why__body">{studio.why}</p>
+        </div>
+
+        <dl class="stats" data-reveal="stagger">
+          {
+            stats.map((stat) => (
+              <div class="stat">
+                <dt class="stat__label">{stat.label}</dt>
+                <dd class="stat__value stat-value wdth-display">
+                  <span data-count={stat.value}>{stat.value}</span>
+                  <span class="stat__suffix">{stat.suffix}</span>
+                </dd>
+              </div>
+            ))
+          }
+        </dl>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .studio__eyebrow {
+    margin-bottom: clamp(32px, 4vw, 52px);
+  }
+
+  .studio__grid {
+    display: grid;
+    gap: clamp(36px, 5vw, 72px);
+    align-items: start;
+  }
+
+  /* ── Portrait ─────────────────────────────────────────────────────────
+     A real person, on a dark ground, lit from one side. Guideline 02 §8.
+     The image parallaxes inside its frame, so the crop breathes as you
+     scroll without the frame itself moving. */
+
+  .studio__figure {
+    margin: 0;
+  }
+
+  @media (max-width: 899px) {
+    .studio__figure {
+      max-width: 420px;
+    }
+  }
+
+  .portrait {
+    position: relative;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: var(--color-surface);
+    /* Parallax moves the image inside the frame, so the frame is cropped
+       slightly to hide the travel at both ends. */
+    aspect-ratio: 4 / 5;
+  }
+
+  .portrait picture,
+  .portrait img {
+    width: 100%;
+    height: 100%;
+  }
+
+  .portrait img {
+    object-fit: cover;
+    /* Overscan so the parallax travel never exposes an edge. */
+    scale: 1.12;
+    will-change: transform;
+  }
+
+  .portrait__caption {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 14px;
+    padding-left: 2px;
+  }
+
+  .portrait__name {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-bone);
+  }
+
+  .portrait__role {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-dim);
+  }
+
+  /* ── Body ─────────────────────────────────────────────────────────────── */
+
+  .studio__headline {
+    font-size: var(--text-h2);
+    line-height: 0.98;
+    letter-spacing: -0.03em;
+  }
+
+  .studio__lead {
+    margin-top: clamp(20px, 2.5vw, 28px);
+    font-size: var(--text-lead);
+    line-height: 1.62;
+    color: var(--color-slate);
+  }
+
+  /* ── Why choose us ────────────────────────────────────────────────────── */
+
+  .why {
+    margin-top: clamp(26px, 3vw, 34px);
+    padding: clamp(20px, 2.4vw, 26px);
+    border: 1px solid var(--color-line);
+    border-left: 2px solid var(--color-rose);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+  }
+
+  .why__heading {
+    color: var(--color-rose-text);
+  }
+
+  .why__body {
+    margin-top: 12px;
+    max-width: 56ch;
+    font-size: var(--text-body);
+    line-height: 1.7;
+    color: var(--color-slate);
+  }
+
+  /* ── Stats ────────────────────────────────────────────────────────────── */
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0;
+    margin: clamp(36px, 4vw, 52px) 0 0;
+    border-top: 1px solid var(--color-line);
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 8px;
+    padding: 22px 16px 0 0;
+    border-right: 1px solid var(--color-line);
+  }
+
+  .stat:last-child {
+    border-right: 0;
+  }
+
+  .stat:not(:first-child) {
+    padding-left: clamp(12px, 2vw, 24px);
+  }
+
+  .stat__value {
+    display: flex;
+    align-items: baseline;
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: var(--text-stat);
+    font-weight: 600;
+    line-height: 0.85;
+    letter-spacing: -0.04em;
+    color: var(--color-bone);
+  }
+
+  .stat__suffix {
+    color: var(--color-rose);
+  }
+
+  .stat__label {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-dim);
+    line-height: 1.5;
+    text-wrap: balance;
+  }
+
+  @media (min-width: 900px) {
+    .studio__grid {
+      grid-template-columns: minmax(0, 4.6fr) minmax(0, 7fr);
+    }
+  }
+</style>

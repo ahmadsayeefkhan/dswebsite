@@ -1,0 +1,186 @@
+---
+/**
+ * The scroll rail — the signature element.
+ *
+ * The mark is one unbroken stroke. The rail is that stroke, continued: a rose
+ * line draws down the left gutter in step with scroll progress, the dot rides
+ * its leading edge, and each section tick fills permanently as it passes. It
+ * terminates in the oversized period in the footer.
+ *
+ * It is also real navigation — every tick is a link — so the decoration does
+ * work. Removed entirely below 1024px; the engine skips it there too.
+ */
+import { sections } from '../data/site';
+---
+
+<nav class="rail" data-rail aria-label="Page sections">
+  <span class="rail__line" aria-hidden="true"></span>
+  <span class="rail__fill" data-rail-fill aria-hidden="true"></span>
+  <span class="rail__dot" data-rail-dot aria-hidden="true"></span>
+
+  <ol class="rail__ticks">
+    {
+      sections.map((s) => (
+        <li>
+          <a href={`#${s.id}`} class="tick" data-tick={s.id}>
+            <span class="tick__stub" aria-hidden="true" />
+            <span class="tick__label">
+              <span class="tick__number">{s.number}</span>
+              {s.label}
+            </span>
+          </a>
+        </li>
+      ))
+    }
+  </ol>
+</nav>
+
+<style>
+  .rail {
+    position: fixed;
+    /* Inset so the first tick clears the sticky header and the last clears the
+       viewport edge — a label flush against either reads as a clipping bug. */
+    top: 116px;
+    bottom: 88px;
+    left: var(--ds-rail);
+    width: 1px;
+    z-index: 40;
+    pointer-events: none;
+  }
+
+  @media (max-width: 1023px) {
+    .rail {
+      display: none;
+    }
+  }
+
+  .rail__line,
+  .rail__fill {
+    position: absolute;
+    inset: 0;
+    width: 1px;
+  }
+
+  .rail__line {
+    background: var(--color-line);
+  }
+
+  /* The stroke being drawn. scaleY is scrubbed to document progress. */
+  .rail__fill {
+    background: linear-gradient(
+      to bottom,
+      rgb(203 74 104 / 0.15),
+      var(--color-rose)
+    );
+    transform-origin: top;
+    transform: scaleY(0);
+    will-change: transform;
+  }
+
+  .rail__dot {
+    position: absolute;
+    top: 0;
+    left: -1.5px;
+    width: 4px;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--color-rose);
+    box-shadow: 0 0 0 3px rgb(203 74 104 / 0.16);
+    will-change: transform;
+  }
+
+  .rail__ticks {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .tick {
+    position: absolute;
+    left: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 20px;
+    transform: translateY(-50%);
+    pointer-events: auto;
+    white-space: nowrap;
+  }
+
+  /* Transparent hit pad — the stub alone is an 8px target. Stays inside the
+     gutter so it never intercepts a click on the content. */
+  .tick::before {
+    content: '';
+    position: absolute;
+    left: -10px;
+    right: -6px;
+    top: -9px;
+    bottom: -9px;
+  }
+
+  .tick__stub {
+    width: 8px;
+    height: 1px;
+    background: var(--color-line-strong);
+    transition:
+      width var(--ds-dur) var(--ds-ease),
+      background-color var(--ds-dur) var(--ds-ease);
+  }
+
+  /* The label is a hover overlay, not a persistent element: the rail lives in
+     a 26px gutter, so a label that stayed on screen would sit on top of the
+     content at container-width viewports. Its own background makes the
+     overlap deliberate rather than accidental. */
+  .tick__label {
+    padding: 5px 9px;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-sm);
+    background: var(--color-void);
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-slate);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-4px);
+    transition:
+      opacity var(--ds-dur) var(--ds-ease),
+      transform var(--ds-dur) var(--ds-ease),
+      color var(--ds-dur) var(--ds-ease);
+  }
+
+  .tick__number {
+    margin-right: 0.6em;
+    color: var(--color-line-strong);
+    transition: color var(--ds-dur) var(--ds-ease);
+  }
+
+  .tick:hover .tick__label,
+  .tick:focus-visible .tick__label {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  /* Passed: the stroke has been drawn. Permanent, not scrubbed. */
+  .tick.is-passed .tick__stub {
+    background: var(--color-rose);
+  }
+  .tick.is-passed .tick__number {
+    color: var(--color-rose-text);
+  }
+
+  /* Active state is carried by the stub alone — colour plus width, so it does
+     not depend on hue to be readable. */
+  .tick.is-active .tick__stub {
+    width: 16px;
+    background: var(--color-rose);
+  }
+  .tick.is-active:hover .tick__label {
+    color: var(--color-bone);
+    border-color: var(--color-line-strong);
+  }
+</style>

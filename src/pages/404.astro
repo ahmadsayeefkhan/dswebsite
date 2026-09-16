@@ -1,0 +1,122 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Logo from '../components/Logo.astro';
+import Icon from '../components/Icon.astro';
+import { contact } from '../data/site';
+---
+
+<Layout
+  title="Page not found — Defined Solution"
+  description="That page does not exist. Head back to the homepage or get in touch."
+  noindex
+>
+  <main id="main" class="nf">
+    <div class="shell nf__inner">
+      <a href="/" class="nf__mark" aria-label="Defined Solution, home">
+        <Logo size={44} />
+      </a>
+
+      <p class="meta nf__code">
+        <span class="meta__counter">404</span>
+        <span class="meta__slash">/</span>
+        Not found
+      </p>
+
+      {/* Errors say what happened and what to do next — no apology, no vagueness.
+          Guideline 01 §3. */}
+      <h1 class="nf__title wdth-display">
+        That page does not exist<span class="period">.</span>
+      </h1>
+
+      <p class="nf__body">
+        The link may be out of date, or the address may have a typo in it. Everything we publish
+        lives on the homepage.
+      </p>
+
+      <div class="nf__actions">
+        <a href="/" class="btn btn--primary btn--lg" data-magnetic="0.24">
+          Back to the homepage
+          <Icon name="arrow-right" size={17} class="btn__icon" />
+        </a>
+        <a href={`mailto:${contact.email}`} class="btn btn--secondary btn--lg">
+          Email us
+          <Icon name="mail" size={17} class="btn__icon" />
+        </a>
+      </div>
+    </div>
+
+    <span class="nf__period" aria-hidden="true"></span>
+  </main>
+</Layout>
+
+<style>
+  .nf {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-height: 100svh;
+    padding-block: 96px;
+    overflow: clip;
+  }
+
+  .nf::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(58% 46% at 20% 12%, var(--ds-aura) 0%, transparent 66%);
+    pointer-events: none;
+  }
+
+  .nf__inner {
+    position: relative;
+    max-width: 640px;
+  }
+
+  .nf__mark {
+    display: inline-block;
+    color: var(--color-bone);
+    margin-bottom: 40px;
+  }
+
+  .nf__code {
+    margin-bottom: 20px;
+  }
+
+  .nf__title {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    line-height: 0.98;
+    letter-spacing: -0.035em;
+    font-weight: 700;
+  }
+
+  .nf__body {
+    margin-top: 20px;
+    max-width: 46ch;
+    font-size: var(--text-lead);
+    line-height: 1.62;
+    color: var(--color-slate);
+  }
+
+  .nf__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 34px;
+  }
+
+  .nf__period {
+    position: absolute;
+    left: var(--ds-rail);
+    bottom: 44px;
+    width: 14px;
+    height: 14px;
+    border-radius: 999px;
+    background: var(--color-rose);
+  }
+
+  @media (max-width: 1023px) {
+    .nf__period {
+      display: none;
+    }
+  }
+</style>

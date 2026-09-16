@@ -1,0 +1,205 @@
+---
+import Icon from './Icon.astro';
+import { hero } from '../data/content';
+---
+
+<section class="hero" id="index" data-hero>
+  <div class="hero__aura" aria-hidden="true" data-parallax="0.06"></div>
+
+  <div class="shell">
+    <div class="hero__eyebrow" data-hero-eyebrow>
+      <p class="meta">
+        <span class="meta__counter">01</span>
+        <span class="meta__slash" aria-hidden="true">/</span>
+        360° digital engineering &amp; growth
+      </p>
+      {/* Studio coordinates, in the mono register. The time is filled by
+          motion.ts (initClock) in Asia/Dhaka; the SSR text is the honest
+          fallback for a reader without JavaScript. */}
+      <p class="meta hero__coords">
+        <span class="hero__coords-dot" aria-hidden="true"></span>
+        Dhaka
+        <span class="meta__slash" aria-hidden="true">/</span>
+        <time class="tnum" data-clock>GMT+6</time>
+      </p>
+    </div>
+
+    <div class="hero__main" data-hero-main>
+      {/* No whitespace between the text and the period — a newline here
+          renders as a space and detaches the mark from the word. */}
+      <h1 class="hero__headline wdth-display" data-hero-headline>{hero.headline}<span
+          class="period"
+          data-hero-period>.</span
+        ></h1>
+
+      <p class="hero__lead measure-lead" data-hero-body>{hero.lead}</p>
+      <p class="hero__sub measure-lead" data-hero-body>{hero.sub}</p>
+
+      <div class="hero__actions" data-hero-actions>
+        <a href={hero.primary.href} class="btn btn--primary btn--lg" data-magnetic="0.24">
+          {hero.primary.label}
+          <Icon name="arrow-up-right" size={17} class="btn__icon" />
+        </a>
+        <a href={hero.secondary.href} class="btn btn--secondary btn--lg" data-magnetic="0.18">
+          {hero.secondary.label}
+          <Icon name="arrow-right" size={17} class="btn__icon" />
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <a href="#studio" class="hero__scroll" aria-label="Scroll to the studio section">
+    <span class="hero__scroll-label">Scroll</span>
+    <span class="hero__scroll-track" aria-hidden="true"><span></span></span>
+  </a>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    padding-block: clamp(120px, 15vw, 190px) clamp(84px, 10vw, 132px);
+    overflow: clip;
+  }
+
+  /* A single restrained plum wash — not a glow blob. Guideline 02 §5. */
+  .hero__aura {
+    position: absolute;
+    inset: -20% -10% 0;
+    background: radial-gradient(
+      58% 52% at 18% 8%,
+      var(--ds-aura) 0%,
+      transparent 68%
+    );
+    pointer-events: none;
+    will-change: transform;
+  }
+
+  .hero > .shell {
+    position: relative;
+  }
+
+  .hero__eyebrow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px 24px;
+    margin-bottom: clamp(32px, 5vw, 56px);
+  }
+
+  .hero__coords {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .hero__coords-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 999px;
+    background: var(--color-rose);
+    box-shadow: 0 0 0 3px var(--ds-rose-veil);
+  }
+
+  .hero__main {
+    will-change: transform, opacity;
+  }
+
+  .hero__headline {
+    font-size: var(--text-display);
+    line-height: 0.92;
+    letter-spacing: -0.035em;
+    font-weight: 700;
+  }
+
+  .hero__lead {
+    margin-top: clamp(24px, 3vw, 34px);
+    font-size: var(--text-lead);
+    line-height: 1.62;
+    color: var(--color-slate);
+  }
+
+  .hero__sub {
+    margin-top: 14px;
+    font-size: var(--text-body);
+    line-height: 1.7;
+    color: var(--color-dim);
+  }
+
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: clamp(28px, 3.5vw, 40px);
+  }
+
+  /* ── Scroll cue ──────────────────────────────────────────────────────── */
+
+  .hero__scroll {
+    position: absolute;
+    left: 50%;
+    bottom: 26px;
+    transform: translateX(-50%);
+    display: none;
+    align-items: center;
+    gap: 12px;
+    color: var(--color-dim);
+    transition: color var(--ds-dur) var(--ds-ease);
+  }
+
+  .hero__scroll:hover {
+    color: var(--color-bone);
+  }
+
+  .hero__scroll-label {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .hero__scroll-track {
+    display: block;
+    width: 58px;
+    height: 1px;
+    background: var(--color-line-strong);
+    overflow: hidden;
+  }
+
+  .hero__scroll-track > span {
+    display: block;
+    width: 40%;
+    height: 100%;
+    background: var(--color-rose);
+    animation: cue 2.2s var(--ds-ease-in-out) infinite;
+  }
+
+  @keyframes cue {
+    0% {
+      transform: translateX(-100%);
+    }
+    60%,
+    100% {
+      transform: translateX(250%);
+    }
+  }
+
+  /* Under reduced motion the global reset collapses every animation to its
+     last keyframe — which parks this one at translateX(250%), outside the
+     overflow-hidden track. The reader was left looking at an empty 1px rule.
+     Stand the mark still inside the track instead. */
+  @media (prefers-reduced-motion: reduce) {
+    .hero__scroll-track > span {
+      animation: none;
+      transform: translateX(0);
+      width: 100%;
+      opacity: 0.5;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .hero__scroll {
+      display: flex;
+    }
+  }
+</style>

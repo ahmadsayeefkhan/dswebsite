@@ -1,0 +1,48 @@
+---
+/**
+ * Defined Solution — master composition.
+ *
+ * The page is a linear argument, which is why its sections are numbered:
+ *   01 Index      the promise, and proof we exist
+ *   02 Studio     who is accountable, how big we are, why us
+ *   03 Services   what we do — an alternating journey, step by step
+ *   04 Work       what we have shipped
+ *   05 Questions  the objections, answered honestly
+ *   06 Contact    the ask
+ */
+import Layout from '../layouts/Layout.astro';
+import Atmosphere from '../components/Atmosphere.astro';
+import Preloader from '../components/Preloader.astro';
+import ScrollRail from '../components/ScrollRail.astro';
+import Navbar from '../components/Navbar.astro';
+import Hero from '../components/Hero.astro';
+import ToolMarquee from '../components/ToolMarquee.astro';
+import StudioTrust from '../components/StudioTrust.astro';
+import ServicesJourney from '../components/ServicesJourney.astro';
+// The projection room. BentoPortfolio.astro is kept as the one-line revert.
+import WorkShowcase from '../components/WorkShowcase.astro';
+import FAQAccordion from '../components/FAQAccordion.astro';
+import ProjectGateway from '../components/ProjectGateway.astro';
+import Footer from '../components/Footer.astro';
+import Cursor from '../components/Cursor.astro';
+---
+
+<Layout>
+  <Atmosphere />
+  <Preloader />
+  <Navbar />
+  <ScrollRail />
+  <Cursor />
+
+  <main id="main" tabindex="-1">
+    <Hero />
+    <ToolMarquee />
+    <StudioTrust />
+    <ServicesJourney />
+    <WorkShowcase />
+    <FAQAccordion />
+    <ProjectGateway />
+  </main>
+
+  <Footer />
+</Layout>

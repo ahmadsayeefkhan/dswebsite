@@ -1,0 +1,295 @@
+---
+import Logo from './Logo.astro';
+import Icon from './Icon.astro';
+import { company, contact, social } from '../data/site';
+import { footerLinks } from '../data/content';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="footer">
+  <div class="shell">
+    <div class="footer__top" data-reveal="fade">
+      <div class="footer__brand">
+        <a href="#index" class="footer__mark" aria-label="Defined Solution, back to top">
+          <Logo size={40} />
+        </a>
+        <p class="footer__tagline">{company.tagline}</p>
+        <address class="footer__address">
+          {contact.address.street}<br />
+          {contact.address.area}, {contact.address.country}
+        </address>
+      </div>
+
+      <nav class="footer__nav" aria-label="Footer">
+        {
+          footerLinks.map((group) => (
+            <div class="footer__group">
+              <h2 class="footer__heading">{group.heading}</h2>
+              <ul class="footer__list">
+                {group.links.map((link) => (
+                  <li>
+                    <a href={link.href} class="footer__link link-slide">
+                      {link.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))
+        }
+
+        <div class="footer__group">
+          <h2 class="footer__heading">Direct</h2>
+          <ul class="footer__list">
+            <li><a href={`mailto:${contact.email}`} class="footer__link link-slide">{contact.email}</a></li>
+            <li>
+              <a href={`tel:${contact.phonePrimary.href}`} class="footer__link link-slide">
+                {contact.phonePrimary.display}
+              </a>
+            </li>
+            {
+              social.map((s) => (
+                <li>
+                  <a href={s.href} class="footer__link link-slide" rel="noopener" target="_blank">
+                    {s.label}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </nav>
+    </div>
+
+    {/* The name, set large and quiet, cropped by the bottom edge: the page
+        signs off in its own type. Decorative — the wordmark is already in the
+        brand block above — and drawn in surface-3 so it never competes with
+        the links. No rose here: the rail's period is the footer's one accent. */}
+    <p class="footer__giant" aria-hidden="true">
+      <span class="footer__giant-line">Defined Solution</span>
+    </p>
+
+    <div class="footer__bottom">
+      <p class="footer__copy">© 2024 – {year} {company.name}. All rights reserved.</p>
+      <a href="#index" class="footer__up">
+        Back to top
+        <Icon name="arrow-up-right" size={14} class="footer__top-icon" />
+      </a>
+      <p class="footer__built">
+        Built with <a href="https://astro.build" rel="noopener" class="footer__inline">Astro</a> and
+        <a href="https://tailwindcss.com" rel="noopener" class="footer__inline">Tailwind CSS</a>
+      </p>
+    </div>
+  </div>
+
+  {/* The rail terminates here. The stroke is drawn; this is the full stop. */}
+  <span class="footer__period" aria-hidden="true"></span>
+</footer>
+
+<style>
+  .footer {
+    position: relative;
+    padding-block: var(--ds-section-y-sm);
+    border-top: 1px solid var(--color-line);
+    background: var(--color-surface);
+  }
+
+  .footer__top {
+    display: grid;
+    gap: clamp(36px, 5vw, 64px);
+    padding-bottom: clamp(40px, 5vw, 64px);
+  }
+
+  .footer__mark {
+    position: relative;
+    display: inline-block;
+    color: var(--color-bone);
+  }
+
+  /* Invisible hit area: a 44px touch target without moving the layout. */
+  .footer__mark::after {
+    content: '';
+    position: absolute;
+    inset: -2px -8px;
+  }
+
+  .footer__tagline {
+    margin-top: 20px;
+    max-width: 30ch;
+    font-family: var(--font-display);
+    font-variation-settings: 'wdth' 106;
+    font-size: 1.0625rem;
+    font-weight: 600;
+    line-height: 1.35;
+    letter-spacing: -0.02em;
+    color: var(--color-bone);
+  }
+
+  .footer__address {
+    margin-top: 18px;
+    font-style: normal;
+    font-size: var(--text-small);
+    line-height: 1.7;
+    color: var(--color-dim);
+  }
+
+  .footer__nav {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 32px;
+  }
+
+  .footer__heading {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-dim);
+  }
+
+  .footer__list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 18px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .footer__link {
+    font-size: var(--text-small);
+    color: var(--color-slate);
+  }
+
+  .footer__link:hover {
+    color: var(--color-bone);
+  }
+
+  /* ── The sign-off ─────────────────────────────────────────────────────── */
+
+  /* Sized to its own width (cqi), not the viewport's: the name spans the
+     container edge to edge at every screen size instead of overrunning it on
+     phones (where a rem floor kicked in) and on wide screens (where the shell
+     stops growing but vw does not). 11.4cqi ≈ 98% of the width for this face;
+     the height keeps the old 0.725 crop of the letterforms. */
+  .footer__giant {
+    position: relative;
+    container-type: inline-size;
+    aspect-ratio: 12.1 / 1;
+    margin: clamp(8px, 2vw, 24px) 0 0;
+    overflow: hidden;
+    /* Fades toward the rule below rather than being sliced by it. */
+    -webkit-mask-image: linear-gradient(to bottom, #000 30%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 30%, transparent 100%);
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .footer__giant-line {
+    position: absolute;
+    left: -0.04em;
+    top: 0.02em;
+    font-family: var(--font-display);
+    font-variation-settings: 'wdth' 118;
+    font-size: 11.4cqi;
+    font-weight: 700;
+    line-height: 0.82;
+    letter-spacing: -0.045em;
+    white-space: nowrap;
+    color: var(--color-surface-3);
+  }
+
+  .footer__bottom {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 32px;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 26px;
+    border-top: 1px solid var(--color-line);
+  }
+
+  .footer__up::after {
+    content: '';
+    position: absolute;
+    inset: -14px -8px;
+  }
+
+  .footer__up {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-slate);
+    transition: color var(--ds-dur-fast) var(--ds-ease);
+  }
+  .footer__up:hover {
+    color: var(--color-bone);
+  }
+  .footer__up :global(.footer__top-icon) {
+    transform: rotate(-45deg);
+    transition: transform var(--ds-dur) var(--ds-ease);
+  }
+  .footer__up:hover :global(.footer__top-icon) {
+    transform: rotate(-45deg) translateY(-2px);
+  }
+
+  .footer__copy,
+  .footer__built {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-dim);
+  }
+
+  .footer__inline {
+    color: var(--color-slate);
+    text-decoration: underline;
+    text-decoration-color: var(--color-line-strong);
+    text-underline-offset: 3px;
+    transition: text-decoration-color var(--ds-dur-fast) var(--ds-ease);
+  }
+  .footer__inline:hover {
+    text-decoration-color: var(--color-rose);
+  }
+
+  /* The terminal period, sitting on the rail's axis. */
+  .footer__period {
+    position: absolute;
+    left: var(--ds-rail);
+    bottom: 40px;
+    width: 14px;
+    height: 14px;
+    margin-left: -6.5px;
+    border-radius: 999px;
+    background: var(--color-rose);
+  }
+
+  @media (max-width: 1023px) {
+    .footer__period {
+      display: none;
+    }
+  }
+
+  /* On touch every link is already a 44px row (global.css), so the list's own
+     gap would double the rhythm; the rows tile instead. */
+  @media (pointer: coarse) {
+    .footer__list {
+      gap: 0;
+      margin-top: 10px;
+    }
+  }
+
+  @media (min-width: 900px) {
+    .footer__top {
+      grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
+    }
+  }
+</style>
